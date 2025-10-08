@@ -1,16 +1,26 @@
-# Copilot Instructions for Talent Project
+# Copilot Instructions for White Label AI Recruiting CRM
 
 ## Project Overview
 
-<!-- Describe the main purpose and type of project (web app, API, library, etc.) -->
+This is a **white label AI recruiting CRM platform** designed for agencies and companies to rebrand and deploy as their own solution. The platform provides comprehensive candidate management, job tracking, and AI-powered recruiting tools that can be customized with client branding and deployed across multiple tenants.
 
-This is a webapp focused on building an AI Recruiting CRM for Agencies and Companies.
-The frontend is built with Next.js and Tailwind CSS, while the backend leverages NestJs and Express.
-The frontend should use components as much as possible to ensure consistency and reusability across the application.
-The backend follows a modular architecture, with each module encapsulating specific functionality and services.
-The backend and the frontend communicate via RESTful APIs, ensuring a clear separation of concerns and scalability.
-We'll have a single repository for both the frontend and backend code, organized into separate directories for clarity.
-We'll use yarn workspaces to manage dependencies efficiently across the monorepo.
+The frontend is built with Next.js and Tailwind CSS, while the backend leverages NestJS and Express. The architecture supports multi-tenancy with organization-level data isolation and configurable branding systems.
+
+## White Label Architecture
+
+### Multi-Tenancy Support
+
+- **Organization Model**: Each client deployment has its own organization with isolated data
+- **Configurable Branding**: Dynamic theming with custom colors, logos, and company names
+- **Subscription Plans**: STARTER, PROFESSIONAL, ENTERPRISE, and CUSTOM tiers
+- **Feature Toggles**: AI assistance, custom branding, API access per organization
+
+### Branding System
+
+- **Theme Provider**: Dynamic CSS custom properties for real-time theme updates
+- **Brand Configuration**: Environment-based branding with `getBrandConfig()`
+- **White Label Components**: Brand-aware UI components that adapt to organization themes
+- **Custom Domains**: Support for client-specific domains and subdomains
 
 ## Architecture & Structure
 
@@ -38,6 +48,11 @@ We'll use yarn workspaces to manage dependencies efficiently across the monorepo
 # Install dependencies
 yarn install
 
+# Setup environment files
+cp apps/frontend/.env.example apps/frontend/.env
+cp apps/backend/.env.example apps/backend/.env
+# Edit the .env files with your actual configuration
+
 # Start both frontend and backend in development
 yarn dev
 
@@ -64,6 +79,13 @@ yarn clean
 # Work with specific workspace
 yarn frontend build
 yarn backend test
+
+# Database commands (backend)
+yarn backend db:migrate  # Run migrations
+yarn backend db:generate # Generate Prisma client
+yarn backend db:studio   # Open Prisma Studio
+yarn backend db:push     # Push schema changes
+yarn backend db:reset    # Reset database
 ```
 
 ### Testing Strategy
@@ -92,14 +114,19 @@ yarn backend test
 - **Communication**: RESTful APIs between frontend (port 3000) and backend (port 3001)
 - **Styling**: Tailwind CSS v4 with custom design system components
 - **State Management**: React built-in state + Server Actions (add external state manager if needed)
-- **Database**: PostgreSQL (when added), use TypeORM or Prisma
+- **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: JWT-based (to be implemented)
 
 ## Important Notes
 
+<!-- Add any critical information for developers -->
+
 - **Monorepo**: Use yarn workspaces - install dependencies at workspace level when possible
 - **Ports**: Frontend (3000), Backend (3001) - backend has CORS enabled for frontend
-- **Environment**: Copy `.env.example` to `.env` and configure as needed
+- **Environment**: Each app has its own `.env` file:
+  - Frontend: `apps/frontend/.env` (copy from `apps/frontend/.env.example`)
+  - Backend: `apps/backend/.env` (copy from `apps/backend/.env.example`)
+- **Database**: PostgreSQL required - update DATABASE_URL in backend .env before running migrations
 - **Development**: Both apps auto-reload on changes, backend includes basic CORS setup
 - **Architecture**: Keep frontend and backend loosely coupled, design APIs first
 
