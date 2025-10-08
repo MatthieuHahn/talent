@@ -1,0 +1,29 @@
+{
+  "name": "talent",
+  "version": "1.0.0",
+  "description": "AI Recruiting CRM for Agencies and Companies",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "yarn workspace @talent/frontend dev & yarn workspace @talent/backend start:dev",
+    "build": "yarn workspaces run build",
+    "test": "yarn workspaces run test",
+    "lint": "yarn workspaces run lint",
+    "clean": "yarn workspaces run clean && rm -rf node_modules",
+    "frontend": "yarn workspace @talent/frontend",
+    "backend": "yarn workspace @talent/backend"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=1.22.0"
+  }
+}
