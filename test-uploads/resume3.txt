@@ -1,0 +1,42 @@
+EMILY RODRIGUEZ
+Product Manager
+
+Email: emily.rodriguez@email.com
+Phone: (555) 456-7890
+Location: Austin, TX
+
+EXPERIENCE
+
+Senior Product Manager | InnovateNow | 2022-Present
+• Lead product strategy and roadmap for B2B SaaS platform serving 100k+ users
+• Manage cross-functional teams of 15+ engineers, designers, and analysts
+• Launched 3 major features resulting in 30% increase in user engagement
+• Conduct user research and A/B testing to drive product decisions
+
+Product Manager | GrowthCorp | 2020-2022
+• Defined product requirements and user stories for mobile application
+• Collaborated with engineering teams using Agile/Scrum methodologies
+• Analyzed product metrics and KPIs using Google Analytics and Mixpanel
+• Increased user retention by 40% through feature optimization
+
+Business Analyst | ConsultingFirm | 2018-2020
+• Analyzed business processes and identified improvement opportunities
+• Created detailed documentation and process flows
+• Worked with clients to implement strategic initiatives
+• Managed multiple projects simultaneously with tight deadlines
+
+EDUCATION
+
+MBA in Product Management
+Wharton School | 2020
+
+Bachelor of Business Administration
+University of Texas at Austin | 2018
+
+SKILLS
+
+Product Management: Roadmap Planning, User Research, A/B Testing
+Analytics: Google Analytics, Mixpanel, Tableau, SQL
+Project Management: Jira, Asana, Trello, Slack
+Design: Figma, Sketch, Wireframing, Prototyping
+Methodologies: Agile, Scrum, Lean Startup, Design Thinking

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,317 +7,257 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// White Label Organization/Tenant Management
 model Organization {
-  id   String @id @default(cuid())
-  slug String @unique // Used for subdomain routing (e.g., client1.recruitmentcrm.com)
-  name String
-
-  // White label configuration
-  brandConfig Json? // Stores branding configuration (colors, logo, etc.)
-  domain      String? // Custom domain
-  subdomain   String? // Subdomain prefix
-
-  // Plan/Subscription
-  plan        SubscriptionPlan @default(STARTER)
-  maxUsers    Int              @default(5)
-  maxJobs     Int              @default(50)
-  isActive    Boolean          @default(true)
-  trialEndsAt DateTime?
-
-  // Contact and billing
-  contactEmail   String
-  billingEmail   String?
-  contactPhone   String?
-  billingAddress Json? // Flexible billing address storage
-
-  // Features enabled for this organization
-  features Json @default("{\"aiAssisted\": true, \"customBranding\": false, \"apiAccess\": false}")
-
-  // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  users      User[]
-  companies  Company[]
-  candidates Candidate[]
-  jobs       Job[]
+  id              String           @id @default(cuid())
+  slug            String           @unique
+  name            String
+  brandConfig     Json?
+  domain          String?
+  subdomain       String?
+  plan            SubscriptionPlan @default(STARTER)
+  maxUsers        Int              @default(5)
+  maxJobs         Int              @default(50)
+  isActive        Boolean          @default(true)
+  trialEndsAt     DateTime?
+  contactEmail    String
+  billingEmail    String?
+  contactPhone    String?
+  billingAddress  Json?
+  features        Json             @default("{\"apiAccess\": false, \"aiAssisted\": true, \"customBranding\": false}")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  candidates      Candidate[]
+  companies       Company[]
+  jobs            Job[]
+  matchingResults MatchingResult[]
+  users           User[]
 
   @@map("organizations")
 }
 
-// User Management
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  firstName String
-  lastName  String
-  password  String
-  role      UserRole @default(RECRUITER)
-
-  // Organization association (for multi-tenancy)
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  // Company association (within the organization)
-  companyId String?
-  company   Company? @relation(fields: [companyId], references: [id])
-
-  // Activity tracking
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  lastLogin DateTime?
-  isActive  Boolean   @default(true)
-
-  // Relations
-  candidates          Candidate[]
-  jobs                Job[]
+  id                  String        @id @default(cuid())
+  email               String        @unique
+  firstName           String
+  lastName            String
+  password            String
+  role                UserRole      @default(RECRUITER)
+  companyId           String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  lastLogin           DateTime?
+  isActive            Boolean       @default(true)
+  organizationId      String
   activities          Activity[]
-  conductedInterviews Interview[] @relation("InterviewerToInterview")
+  candidates          Candidate[]
+  conductedInterviews Interview[]   @relation("InterviewerToInterview")
+  jobs                Job[]
+  company             Company?      @relation(fields: [companyId], references: [id])
+  organization        Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("users")
 }
 
 model Company {
-  id          String  @id @default(cuid())
-  name        String
-  description String?
-  website     String?
-  logo        String?
-
-  // Organization association (for multi-tenancy)
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  website        String?
+  logo           String?
+  email          String?
+  phone          String?
+  address        String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   organizationId String
+  candidates     Candidate[]
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  // Contact info
-  email   String?
-  phone   String?
-  address String?
-
-  // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  users      User[]
-  jobs       Job[]
-  candidates Candidate[]
+  jobs           Job[]
+  users          User[]
 
   @@map("companies")
 }
 
-// Candidate Management
 model Candidate {
-  id        String          @id @default(cuid())
-  email     String
-  firstName String
-  lastName  String
-  phone     String?
-  linkedin  String?
-  github    String?
-  portfolio String?
-  resume    String? // File path or URL
-  summary   String?
-  status    CandidateStatus @default(ACTIVE)
+  id                 String           @id @default(cuid())
+  email              String
+  firstName          String
+  lastName           String
+  phone              String?
+  linkedin           String?
+  github             String?
+  portfolio          String?
+  resume             String?
+  summary            String?
+  status             CandidateStatus  @default(ACTIVE)
+  location           String?
+  timezone           String?
+  yearsOfExperience  Int?
+  currentSalary      Float?
+  expectedSalary     Float?
+  availability       DateTime?
+  source             String?
+  notes              String?
+  tags               String[]
+  companyId          String?
+  addedById          String
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  organizationId     String
+  certifications     Json?
+  currentRole        String?
+  education          Json?
+  experience         Json?
+  industryExperience String[]
+  projects           Json?
+  salaryExpectation  Json?
+  skills             Json?
+  embedding          String?
+  embeddingAt        DateTime?
+  embeddingModel     String?
+  activities         Activity[]
+  addedBy            User             @relation(fields: [addedById], references: [id])
+  company            Company?         @relation(fields: [companyId], references: [id])
+  organization       Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  interviews         Interview[]
+  applications       JobApplication[]
+  matchingResults    MatchingResult[]
 
-  // Organization association (for multi-tenancy)
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  // Location
-  location String?
-  timezone String?
-
-  // Experience
-  yearsOfExperience Int?
-  currentSalary     Float?
-  expectedSalary    Float?
-  availability      DateTime?
-
-  // Tracking
-  source String? // How they were found/added
-  notes  String?
-  tags   String[] // Skills, technologies, etc.
-
-  // Company/Recruiter association
-  companyId String?
-  company   Company? @relation(fields: [companyId], references: [id])
-
-  addedById String
-  addedBy   User   @relation(fields: [addedById], references: [id])
-
-  // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  applications JobApplication[]
-  activities   Activity[]
-  interviews   Interview[]
-
-  // Ensure email uniqueness within organization
   @@unique([email, organizationId])
   @@map("candidates")
 }
 
-// Job Management
 model Job {
-  id           String  @id @default(cuid())
-  title        String
-  description  String
-  requirements String?
-
-  // Organization association (for multi-tenancy)
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  // Job details
-  department String?
-  location   String?
-  remote     Boolean  @default(false)
-  type       JobType  @default(FULL_TIME)
-  level      JobLevel @default(MID)
-
-  // Compensation
-  salaryMin Float?
-  salaryMax Float?
-  currency  String @default("USD")
-
-  // Status
-  status   JobStatus @default(DRAFT)
-  priority Priority  @default(MEDIUM)
-
-  // Dates
-  startDate DateTime?
-  endDate   DateTime?
-  deadline  DateTime?
-
-  // Company/Recruiter association
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id])
-
-  recruiterId String
-  recruiter   User   @relation(fields: [recruiterId], references: [id])
-
-  // AI-related fields
-  aiGenerated Boolean @default(false)
-  aiPrompt    String? // Original prompt used to generate job
-
-  // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  applications JobApplication[]
-  activities   Activity[]
-  interviews   Interview[]
+  id                   String           @id @default(cuid())
+  title                String
+  description          String
+  requirements         String?
+  department           String?
+  location             String?
+  remote               Boolean          @default(false)
+  type                 JobType          @default(FULL_TIME)
+  level                JobLevel         @default(MID)
+  salaryMin            Float?
+  salaryMax            Float?
+  currency             String           @default("USD")
+  status               JobStatus        @default(DRAFT)
+  priority             Priority         @default(MEDIUM)
+  startDate            DateTime?
+  endDate              DateTime?
+  deadline             DateTime?
+  companyId            String
+  recruiterId          String
+  aiGenerated          Boolean          @default(false)
+  aiPrompt             String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  organizationId       String
+  applicationInfo      Json?
+  benefits             Json?
+  metadata             Json?
+  requirementsDetailed Json?
+  responsibilities     Json?
+  jobInfo              Json?
+  embedding            String?
+  embeddingAt          DateTime?
+  embeddingModel       String?
+  activities           Activity[]
+  interviews           Interview[]
+  applications         JobApplication[]
+  company              Company          @relation(fields: [companyId], references: [id])
+  organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  recruiter            User             @relation(fields: [recruiterId], references: [id])
+  matchingResults      MatchingResult[]
 
   @@map("jobs")
 }
 
-// Application Tracking
 model JobApplication {
-  id     String            @id @default(cuid())
-  status ApplicationStatus @default(APPLIED)
-
-  // Application details
-  appliedAt   DateTime @default(now())
+  id          String            @id @default(cuid())
+  status      ApplicationStatus @default(APPLIED)
+  appliedAt   DateTime          @default(now())
   coverLetter String?
   notes       String?
-
-  // Scoring/Rating
-  rating   Float? // 1-5 or 1-10 scale
-  fitScore Float? // AI-generated fit score
-
-  // Relations
+  rating      Float?
+  fitScore    Float?
   candidateId String
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
-
-  jobId String
-  job   Job    @relation(fields: [jobId], references: [id])
-
-  // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  interviews Interview[]
-  activities Activity[]
+  jobId       String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  activities  Activity[]
+  interviews  Interview[]
+  candidate   Candidate         @relation(fields: [candidateId], references: [id])
+  job         Job               @relation(fields: [jobId], references: [id])
 
   @@unique([candidateId, jobId])
   @@map("job_applications")
 }
 
-// Interview Scheduling
+model MatchingResult {
+  id                  String       @id @default(cuid())
+  jobId               String
+  candidateId         String
+  score               Float
+  embeddingSimilarity Float
+  skillMatches        Json
+  aiAnalysis          Json?
+  calculatedAt        DateTime     @default(now())
+  expiresAt           DateTime
+  organizationId      String
+  candidate           Candidate    @relation(fields: [candidateId], references: [id])
+  job                 Job          @relation(fields: [jobId], references: [id])
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, candidateId])
+  @@map("matching_results")
+}
+
 model Interview {
-  id     String          @id @default(cuid())
-  title  String
-  type   InterviewType   @default(PHONE)
-  status InterviewStatus @default(SCHEDULED)
-
-  // Schedule details
-  scheduledAt DateTime
-  duration    Int      @default(60) // minutes
-  timezone    String?
-  location    String? // Physical address or meeting link
-  notes       String?
-
-  // Feedback
-  feedback String?
-  rating   Float? // 1-5 or 1-10 scale
-  outcome  InterviewOutcome?
-
-  // Relations
-  candidateId String
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
-
-  jobId String
-  job   Job    @relation(fields: [jobId], references: [id])
-
+  id            String            @id @default(cuid())
+  title         String
+  type          InterviewType     @default(PHONE)
+  status        InterviewStatus   @default(SCHEDULED)
+  scheduledAt   DateTime
+  duration      Int               @default(60)
+  timezone      String?
+  location      String?
+  notes         String?
+  feedback      String?
+  rating        Float?
+  outcome       InterviewOutcome?
+  candidateId   String
+  jobId         String
   applicationId String?
-  application   JobApplication? @relation(fields: [applicationId], references: [id])
-
   interviewerId String
-  interviewer   User   @relation("InterviewerToInterview", fields: [interviewerId], references: [id])
-
-  // Metadata
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  application   JobApplication?   @relation(fields: [applicationId], references: [id])
+  candidate     Candidate         @relation(fields: [candidateId], references: [id])
+  interviewer   User              @relation("InterviewerToInterview", fields: [interviewerId], references: [id])
+  job           Job               @relation(fields: [jobId], references: [id])
 
   @@map("interviews")
 }
 
-// Activity/Event Tracking
 model Activity {
-  id          String       @id @default(cuid())
-  type        ActivityType
-  title       String
-  description String?
-
-  // Metadata
-  metadata Json? // Flexible data storage
-
-  // Relations
-  userId String?
-  user   User?   @relation(fields: [userId], references: [id])
-
-  candidateId String?
-  candidate   Candidate? @relation(fields: [candidateId], references: [id])
-
-  jobId String?
-  job   Job?    @relation(fields: [jobId], references: [id])
-
+  id            String          @id @default(cuid())
+  type          ActivityType
+  title         String
+  description   String?
+  metadata      Json?
+  userId        String?
+  candidateId   String?
+  jobId         String?
   applicationId String?
+  createdAt     DateTime        @default(now())
   application   JobApplication? @relation(fields: [applicationId], references: [id])
-
-  // Timestamp
-  createdAt DateTime @default(now())
+  candidate     Candidate?      @relation(fields: [candidateId], references: [id])
+  job           Job?            @relation(fields: [jobId], references: [id])
+  user          User?           @relation(fields: [userId], references: [id])
 
   @@map("activities")
 }
 
-// Enums
 enum SubscriptionPlan {
   STARTER
   PROFESSIONAL
@@ -430,4 +367,7 @@ enum ActivityType {
   AI_MATCH_FOUND
   ORGANIZATION_CREATED
   USER_INVITED
+  BATCH_UPLOAD_STARTED
+  BATCH_UPLOAD_COMPLETED
+  BATCH_UPLOAD_FAILED
 }

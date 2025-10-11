@@ -1,0 +1,33 @@
+SARAH JOHNSON
+Software Engineer
+
+Email: sarah.johnson@email.com
+Phone: (555) 123-4567
+Location: San Francisco, CA
+
+EXPERIENCE
+
+Senior Software Engineer | Tech Corp | 2022-Present
+• Developed scalable web applications using React, Node.js, and PostgreSQL
+• Led a team of 4 engineers in delivering a microservices architecture
+• Improved application performance by 40% through optimization techniques
+• Mentored junior developers and conducted code reviews
+
+Software Engineer | StartupXYZ | 2020-2022
+• Built RESTful APIs using Express.js and MongoDB
+• Implemented CI/CD pipelines using GitHub Actions and AWS
+• Collaborated with product managers and designers in an Agile environment
+• Reduced deployment time by 60% through automation
+
+EDUCATION
+
+Bachelor of Science in Computer Science
+Stanford University | 2020
+
+SKILLS
+
+Programming Languages: JavaScript, TypeScript, Python, Java
+Frameworks: React, Node.js, Express.js, NestJS
+Databases: PostgreSQL, MongoDB, Redis
+Cloud: AWS, Docker, Kubernetes
+Tools: Git, Jest, Cypress, Figma

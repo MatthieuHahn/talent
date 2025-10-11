@@ -27,6 +27,10 @@ export class RegisterDto {
   @IsString()
   lastName: string;
 
+  @IsString()
+  @IsOptional()
+  organizationName?: string;
+
   @IsEnum(UserRole)
   @IsOptional()
   role?: UserRole = UserRole.RECRUITER;

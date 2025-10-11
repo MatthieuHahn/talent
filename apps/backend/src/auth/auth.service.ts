@@ -12,7 +12,8 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { email, password, firstName, lastName, role } = registerDto;
+    const { email, password, firstName, lastName, organizationName, role } =
+      registerDto;
 
     // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({
@@ -26,28 +27,67 @@ export class AuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        role,
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        createdAt: true,
-      },
+    // Use provided organization name or default to user's name
+    const orgName =
+      organizationName || `${firstName} ${lastName}'s Organization`;
+    const organizationSlug = (organizationName || email.split('@')[0])
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+
+    // Creates both organization and user in a transaction
+    const result = await this.prisma.$transaction(async (prisma) => {
+      // Create organization
+      const organization = await prisma.organization.create({
+        data: {
+          name: orgName,
+          slug: organizationSlug,
+          contactEmail: email,
+          plan: 'STARTER',
+          features: {
+            aiAssisted: true,
+            customBranding: false,
+            apiAccess: false,
+          },
+        },
+      });
+
+      // Create user associated with the organization
+      const user = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          firstName,
+          lastName,
+          role: role || 'RECRUITER',
+          organizationId: organization.id,
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          createdAt: true,
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              plan: true,
+            },
+          },
+        },
+      });
+
+      return { user, organization };
     });
 
     return {
-      message: 'User created successfully',
-      user,
+      message: 'User and organization created successfully',
+      user: result.user,
+      organization: result.organization,
     };
   }
 
@@ -56,6 +96,15 @@ export class AuthService {
       where: { email },
       include: {
         company: true,
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            plan: true,
+            features: true,
+          },
+        },
       },
     });
 
@@ -77,6 +126,8 @@ export class AuthService {
       email: user.email,
       sub: user.id,
       role: user.role,
+      organizationId: user.organization?.id,
+      organizationSlug: user.organization?.slug,
       company: user.company?.name,
     };
 
@@ -88,6 +139,7 @@ export class AuthService {
         name: `${user.firstName} ${user.lastName}`,
         role: user.role,
         company: user.company?.name,
+        organization: user.organization,
       },
     };
   }

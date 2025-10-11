@@ -1,0 +1,37 @@
+MICHAEL CHEN
+Data Scientist
+
+Email: michael.chen@email.com
+Phone: (555) 987-6543
+Location: New York, NY
+
+EXPERIENCE
+
+Senior Data Scientist | DataTech Inc | 2021-Present
+• Developed machine learning models for predictive analytics using Python and TensorFlow
+• Analyzed large datasets using SQL, Pandas, and Spark
+• Created data visualization dashboards using Tableau and Power BI
+• Increased model accuracy by 25% through feature engineering and hyperparameter tuning
+
+Data Analyst | Analytics Corp | 2019-2021
+• Performed statistical analysis on customer behavior data
+• Built automated reporting systems using Python and SQL
+• Collaborated with business stakeholders to identify key metrics
+• Reduced data processing time by 50% through query optimization
+
+EDUCATION
+
+Master of Science in Data Science
+MIT | 2019
+
+Bachelor of Science in Mathematics
+UC Berkeley | 2017
+
+SKILLS
+
+Programming: Python, R, SQL, Scala
+Machine Learning: TensorFlow, PyTorch, Scikit-learn, XGBoost
+Data Tools: Pandas, NumPy, Spark, Hadoop
+Visualization: Tableau, Power BI, Matplotlib, Plotly
+Cloud: AWS, GCP, Azure
+Databases: PostgreSQL, MongoDB, BigQuery
