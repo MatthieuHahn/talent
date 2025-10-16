@@ -62,6 +62,7 @@ export class MatchingService {
     jobId: string,
     organizationId: string,
     limit: number = 5,
+    forceRematch: boolean = false,
   ): Promise<MatchingResult[]> {
     // Check for cached results first
     const cachedResults = await this.getCachedMatchingResults(
@@ -69,7 +70,8 @@ export class MatchingService {
       organizationId,
       limit,
     );
-    if (cachedResults && cachedResults.length > 0) {
+    
+    if (!forceRematch && cachedResults && cachedResults.length > 0) {
       console.log(
         `[MatchingService] Using ${cachedResults.length} cached results for job ${jobId}`,
       );
@@ -204,12 +206,17 @@ export class MatchingService {
         jobEmbedding,
         candidateEmbedding,
       );
+
       return { ...candidate, similarity };
     });
 
     // Sort by similarity and take top results
     candidatesWithSimilarity.sort((a, b) => b.similarity - a.similarity);
-    const topCandidates = candidatesWithSimilarity.slice(0, limit);
+    // Sort by embeddingSimilarity before slicing
+    const sortedCandidates = candidatesWithSimilarity.sort(
+      (a, b) => b.similarity - a.similarity,
+    );
+    const topCandidates = sortedCandidates.filter(x => x.similarity > 0.5).slice(0, limit);
 
     return topCandidates.map((candidate) => ({
       candidateId: candidate.id,
@@ -257,7 +264,7 @@ Summary: ${candidateData.summary || 'Not provided'}
 Embedding Similarity Score: ${embeddingSimilarity.toFixed(3)}
 
 ANALYSIS REQUIREMENTS:
-1. Overall match score (0-100)
+1. Overall match score (0-100) - embedding similarity should influence but not solely determine this score - skills and experience are more important
 2. Top 3 strengths that make this candidate suitable
 3. Top 3 potential concerns or weaknesses
 4. Detailed reasoning for the match assessment
@@ -272,8 +279,6 @@ Respond in JSON format:
   "recommendation": "highly_recommended|recommended|consider|not_recommended"
 }
 `;
-
-    console.log('OpenAI Prompt:', prompt);
 
     try {
       const response = await this.openai.chat.completions.create({

@@ -25,14 +25,14 @@ export class MatchingController {
     @Param('jobId') jobId: string,
     @User() user: any,
     @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit: number = 5,
-    @Query('withAi', new DefaultValuePipe('true')) withAi: string = 'true',
+    @Query('forceRematch', new DefaultValuePipe(false))
+    forceRematch: boolean = false,
   ) {
-    const useAi = withAi === 'true';
-
     return this.matchingService.findBestCandidatesForJob(
       jobId,
       user.organizationId,
       limit,
+      forceRematch,
     );
   }
 
