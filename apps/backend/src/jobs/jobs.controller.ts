@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JobsService } from './jobs.service';
+import { S3Service } from '../s3/s3.service';
 import { User, JwtAuthGuard } from '../auth';
 import type { AuthenticatedUser } from '../auth';
 import {
@@ -27,7 +28,34 @@ import {
 @Controller('jobs')
 @UseGuards(JwtAuthGuard)
 export class JobsController {
-  constructor(private readonly jobsService: JobsService) {}
+  constructor(
+    private readonly jobsService: JobsService,
+    private readonly s3Service: S3Service,
+  ) {}
+
+  @Get(':id/job-description-url')
+  async getJobDescriptionUrl(
+    @Param('id') id: string,
+    @User() user: AuthenticatedUser,
+  ) {
+    const organizationId = user.organizationId;
+    const job = await this.jobsService.findOne(id, organizationId);
+    if (!job || !job.jobDescriptionUrl) {
+      throw new BadRequestException('Job description not found');
+    }
+    // Extract bucket and key from the jobDescriptionUrl
+    // Example: http://localhost:9000/job-descriptions/orgid/jobs/file.pdf
+    const urlParts = job.jobDescriptionUrl.split('/');
+    const bucket = urlParts[3];
+    const key = urlParts.slice(4).join('/');
+    // Generate signed URL (valid for 5 minutes)
+    const signedUrl = await this.s3Service.getSignedUrl({
+      bucket,
+      key,
+      expiresIn: 300,
+    });
+    return { url: signedUrl };
+  }
 
   @Post()
   async create(

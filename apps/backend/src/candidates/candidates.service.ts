@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { OpenAiService } from '../openai/openai.service';
 import { FileParsingService } from '../file-parsing/file-parsing.service';
+import { S3Service } from '../s3/s3.service';
 import {
   CreateCandidateDto,
   CreateCandidateFromResumeDto,
@@ -25,6 +26,7 @@ export class CandidatesService {
     private readonly prisma: PrismaService,
     private readonly openAiService: OpenAiService,
     private readonly fileParsingService: FileParsingService,
+    private readonly s3Service: S3Service,
   ) {}
 
   private async ensureDefaultUserAndOrg(): Promise<{
@@ -83,8 +85,19 @@ export class CandidatesService {
       const actualOrgId =
         organizationId === 'dummy-org-id' ? validOrgId : organizationId;
       const actualUserId = userId === 'dummy-user-id' ? validUserId : userId;
+
       // Validate file
       this.fileParsingService.validateFileSize(file, 10);
+
+      // Upload resume to S3 using S3Service
+      const resumeBucket = process.env.S3_RESUME_BUCKET || 'resumes';
+      const resumeKey = `${actualOrgId}/candidates/${Date.now()}_${file.originalname}`;
+      const resumeUrl = await this.s3Service.uploadFile({
+        bucket: resumeBucket,
+        key: resumeKey,
+        body: file.buffer,
+        contentType: file.mimetype,
+      });
 
       // Parse the resume file
       const resumeText = await this.fileParsingService.parseResumeFile(file);
@@ -140,6 +153,9 @@ export class CandidatesService {
         status: additionalData?.status || CandidateStatus.ACTIVE,
         source: additionalData?.source || 'resume_upload',
         notes: additionalData?.notes,
+
+        // Resume file URL
+        resumeUrl,
 
         // Generate comprehensive tags for search
         tags: this.generateSearchTags(parsedData),

@@ -1,0 +1,57 @@
+{
+  "Index": {
+    "title": "Welcome to AI Recruiting CRM",
+    "description": "Streamline your hiring process with our AI-powered platform."
+  },
+  "About": {
+    "title": "About",
+    "lastUpdated": "This example was updated {lastUpdatedRelative} ({lastUpdated, date, short})."
+  },
+  "Navigation": {
+    "index": "Home",
+    "about": "About",
+    "candidates": "Candidates",
+    "jobs": "Jobs",
+    "dashboard": "Dashboard",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signedInAs": "Signed in as",
+    "switchLocale": "Switch to {locale, select, de {German} en {English} other {Unknown}}"
+  },
+  "NotFound": {
+    "title": "Sorry, this page could not be found."
+  },
+  "PageLayout": {
+    "pageTitle": "next-intl"
+  },
+  "Footer": {
+    "text": "All rights reserved."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "hiredThisMonth": "Hired This Month",
+    "activeCandidates": "Active Candidates",
+    "newThisWeek": "New This Week",
+    "totalCandidates": "Total Candidates",
+    "createJob": "Create Job",
+    "addCandidate": "Add Candidate",
+    "viewJobs": "View Jobs",
+    "viewCandidates": "View Candidates",
+    "statsError": "Could not fetch stats."
+  },
+  "jobs": {
+    "title": "Jobs",
+    "listError": "Could not fetch jobs.",
+    "job": {
+      "title": "Upload Job Description",
+      "uploadLabel": "Job Description PDF",
+      "uploadButton": "Upload",
+      "uploading": "Uploading...",
+      "uploadError": "Please select a job description PDF."
+    }
+  },
+  "candidates": {
+    "title": "Candidates",
+    "listError": "Could not fetch candidates."
+  }
+}

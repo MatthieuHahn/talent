@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CandidatesService } from './candidates.service';
+import { S3Service } from '../s3/s3.service';
 import { User, JwtAuthGuard } from '../auth';
 import type { AuthenticatedUser } from '../auth';
 import {
@@ -27,7 +28,31 @@ import {
 @Controller('candidates')
 @UseGuards(JwtAuthGuard)
 export class CandidatesController {
-  constructor(private readonly candidatesService: CandidatesService) {}
+  constructor(
+    private readonly candidatesService: CandidatesService,
+    private readonly s3Service: S3Service,
+  ) {}
+
+  @Get(':id/resume-url')
+  async getResumeUrl(@Param('id') id: string, @User() user: AuthenticatedUser) {
+    const organizationId = user.organizationId;
+    const candidate = await this.candidatesService.findOne(id, organizationId);
+    if (!candidate || !candidate.resumeUrl) {
+      throw new BadRequestException('Resume not found');
+    }
+    // Extract bucket and key from the resumeUrl
+    // Example: http://localhost:9000/resumes/orgid/candidates/file.pdf
+    const urlParts = candidate.resumeUrl.split('/');
+    const bucket = urlParts[3];
+    const key = urlParts.slice(4).join('/');
+    // Generate signed URL (valid for 5 minutes)
+    const signedUrl = await this.s3Service.getSignedUrl({
+      bucket,
+      key,
+      expiresIn: 300,
+    });
+    return { url: signedUrl };
+  }
 
   @Post('upload-resume')
   @UseInterceptors(FileInterceptor('resume'))
@@ -69,7 +94,10 @@ export class CandidatesController {
   }
 
   @Get()
-  async findAll(@Query() query: CandidateQueryDto, @User() user: AuthenticatedUser) {
+  async findAll(
+    @Query() query: CandidateQueryDto,
+    @User() user: AuthenticatedUser,
+  ) {
     // Get organization and user from JWT token
     const organizationId = user.organizationId;
 
@@ -109,7 +137,10 @@ export class CandidatesController {
   }
 
   @Post('match-to-job')
-  async matchToJob(@Body() matchData: MatchCandidatesDto, @User() user: AuthenticatedUser) {
+  async matchToJob(
+    @Body() matchData: MatchCandidatesDto,
+    @User() user: AuthenticatedUser,
+  ) {
     // Get organization and user from JWT token
     const organizationId = user.organizationId;
 

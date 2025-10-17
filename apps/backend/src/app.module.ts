@@ -7,6 +7,7 @@ import { CandidatesModule } from './candidates/candidates.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { JobsModule } from './jobs/jobs.module';
 import { MatchingModule } from './matching/matching.module';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MatchingModule } from './matching/matching.module';
     DashboardModule,
     JobsModule,
     MatchingModule,
+    S3Module,
   ],
   controllers: [AppController],
   providers: [AppService],

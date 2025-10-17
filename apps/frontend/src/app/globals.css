@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
+  font-weight: 700;
+  color: #222;
+}
+
+p,
+ul,
+ol {
+  color: #444;
+}
+
+a {
+  color: #2563eb;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: #38bdf8;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e0e7ef;
+  border-radius: 8px;
+}
+
+/* Container utility for main content */
+.container {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* Card component styling */
+.card {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+.card:hover {
+  box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* Button enhancements */
+button {
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  box-shadow: 0 1px 4px 0 rgba(37, 99, 235, 0.08);
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+}
+button:hover {
+  background: #1746a2;
+  box-shadow: 0 2px 8px 0 rgba(37, 99, 235, 0.16);
+}
+button:focus {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+/* Custom selection color */
+::selection {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* Input focus states */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Card dark mode */
+@media (prefers-color-scheme: dark) {
+  .card {
+    background: #171717;
+    color: #ededed;
+    box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.32);
+  }
+  .card:hover {
+    box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.48);
+  }
+  button {
+    background: #38bdf8;
+    color: #ededed;
+  }
+  button:hover {
+    background: #2563eb;
+    color: #fff;
+  }
+}

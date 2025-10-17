@@ -72,6 +72,9 @@ export interface ParsedJobData {
 }
 
 export class CreateJobDto {
+  @IsOptional()
+  @IsString()
+  jobDescriptionUrl?: string;
   @IsString()
   title: string;
 

@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { OpenAiService } from '../openai/openai.service';
 import { FileParsingService } from '../file-parsing/file-parsing.service';
+import { S3Service } from '../s3/s3.service';
 import {
   CreateJobDto,
   CreateJobWithAIDto,
@@ -24,6 +25,7 @@ export class JobsService {
     private readonly prisma: PrismaService,
     private readonly openAiService: OpenAiService,
     private readonly fileParsingService: FileParsingService,
+    private readonly s3Service: S3Service,
   ) {}
 
   private async ensureDefaultUserAndOrg(): Promise<{
@@ -257,6 +259,17 @@ export class JobsService {
       // Validate file
       this.fileParsingService.validateFileSize(file, 10);
 
+      // Upload job description file to S3
+      const jobDescBucket =
+        process.env.S3_JOB_DESCRIPTION_BUCKET || 'job-descriptions';
+      const jobDescKey = `${actualOrgId}/jobs/${Date.now()}_${file.originalname}`;
+      const jobDescriptionUrl = await this.s3Service.uploadFile({
+        bucket: jobDescBucket,
+        key: jobDescKey,
+        body: file.buffer,
+        contentType: file.mimetype,
+      });
+
       // Parse the job description file
       const jobText = await this.fileParsingService.parseResumeFile(file);
 
@@ -268,6 +281,9 @@ export class JobsService {
         parsedData,
         additionalData,
       );
+
+      // Add jobDescriptionUrl to jobData
+      jobData.jobDescriptionUrl = jobDescriptionUrl;
 
       // Create the job
       const job = await this.createJob(jobData, actualOrgId, actualRecruiterId);

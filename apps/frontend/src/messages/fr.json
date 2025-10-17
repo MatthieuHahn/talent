@@ -1,0 +1,51 @@
+{
+  "Index": {
+    "title": "Bienvenue sur AI Recruiting CRM",
+    "description": "Rationalisez votre processus de recrutement avec notre plateforme alimentée par l'IA."
+  },
+  "Footer": {
+    "text": "Tous droits réservés."
+  },
+  "About": {
+    "title": "À propos",
+    "lastUpdated": "Cet exemple a été mis à jour {lastUpdatedRelative} ({lastUpdated, date, short})."
+  },
+  "Navigation": {
+    "index": "Accueil",
+    "about": "À propos",
+    "candidates": "Candidats",
+    "jobs": "Postes",
+    "dashboard": "Tableau de bord",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "signedInAs": "Connecté en tant que",
+    "switchLocale": "Passer à {locale, select, de {Français} en {Anglais} other {Inconnu}}"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "hiredThisMonth": "Embauchés ce mois-ci",
+    "activeCandidates": "Candidats actifs",
+    "newThisWeek": "Nouveaux cette semaine",
+    "totalCandidates": "Total des candidats",
+    "createJob": "Créer un poste",
+    "addCandidate": "Ajouter un candidat",
+    "viewJobs": "Voir les postes",
+    "viewCandidates": "Voir les candidats",
+    "statsError": "Impossible de récupérer les statistiques."
+  },
+  "jobs": {
+    "title": "Postes",
+    "listError": "Impossible de récupérer les postes.",
+    "job": {
+      "title": "Télécharger la description du poste",
+      "uploadLabel": "Description du poste (PDF)",
+      "uploadButton": "Télécharger",
+      "uploading": "Téléchargement...",
+      "uploadError": "Veuillez sélectionner un fichier PDF de description de poste."
+    }
+  },
+  "candidates": {
+    "title": "Candidats",
+    "listError": "Impossible de récupérer les candidats."
+  }
+}
