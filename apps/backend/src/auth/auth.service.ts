@@ -44,7 +44,7 @@ export class AuthService {
           name: orgName,
           slug: organizationSlug,
           contactEmail: email,
-          plan: 'STARTER',
+          plan: 'FREE',
           features: {
             aiAssisted: true,
             customBranding: false,

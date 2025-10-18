@@ -6,11 +6,13 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSession, signOut } from "next-auth/react";
+import LanguageSwitcher from "../ui/LanguageSwitcher";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const locale = useLocale();
   const t = useTranslations("Navigation");
+  const tFooter = useTranslations("Footer");
   const { data: session, status } = useSession();
 
   return (
@@ -42,12 +44,18 @@ export default function Header() {
               d="M12 6v6l4 2"
             />
           </svg>
-          <span>AI Recruiting CRM</span>
+          <span>{tFooter("brandName")}</span>
         </div>
 
         {/* Desktop Nav */}
         {status === "authenticated" && session?.user ? (
           <nav className="hidden md:flex gap-6 p-4 text-base items-center">
+            <Link
+              href={`/${locale}/dashboard`}
+              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
+            >
+              {t("dashboard")}
+            </Link>
             <Link
               href={`/${locale}/candidates` as any}
               className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
@@ -55,11 +63,12 @@ export default function Header() {
               {t("candidates")}
             </Link>
             <Link
-              href={`/${locale}/dashboard`}
+              href={`/${locale}/billing`}
               className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
             >
-              {t("dashboard")}
+              {t("billing") || "Billing"}
             </Link>
+            <LanguageSwitcher />
             <span className="ml-4 text-sm text-gray-600 dark:text-gray-300">
               {t("signedInAs")}{" "}
               <span className="font-semibold">{session.user.email}</span>
@@ -73,6 +82,7 @@ export default function Header() {
           </nav>
         ) : (
           <div className="hidden md:flex gap-4 items-center">
+            <LanguageSwitcher />
             <Link
               href={`/${locale}/login`}
               className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition px-4 py-2 rounded-lg font-medium"
@@ -108,6 +118,13 @@ export default function Header() {
           {status === "authenticated" && session?.user ? (
             <nav className="flex flex-col gap-2 px-6 py-4 text-base">
               <Link
+                href={`/${locale}/dashboard`}
+                className="py-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t("dashboard")}
+              </Link>
+              <Link
                 href={`/${locale}/candidates` as any}
                 className="py-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
                 onClick={() => setMenuOpen(false)}
@@ -115,12 +132,15 @@ export default function Header() {
                 {t("candidates")}
               </Link>
               <Link
-                href={`/${locale}/dashboard`}
+                href={`/${locale}/billing`}
                 className="py-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
                 onClick={() => setMenuOpen(false)}
               >
-                {t("dashboard")}
+                {t("billing") || "Billing"}
               </Link>
+              <div className="py-2">
+                <LanguageSwitcher />
+              </div>
               <span className="mt-2 text-sm text-gray-600 dark:text-gray-300">
                 {t("signedInAs")}{" "}
                 <span className="font-semibold">{session.user.email}</span>
@@ -137,6 +157,9 @@ export default function Header() {
             </nav>
           ) : (
             <div className="flex flex-col gap-3 px-6 py-4">
+              <div className="py-2">
+                <LanguageSwitcher />
+              </div>
               <Link
                 href={`/${locale}/login`}
                 className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition py-2 font-medium"

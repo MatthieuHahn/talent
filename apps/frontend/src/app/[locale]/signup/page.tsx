@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useMessages, useLocale } from "next-intl";
+import { useMessages, useLocale, useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import {
   Mail,
@@ -17,6 +17,7 @@ import Button from "@/components/ui/Button";
 
 export default function SignupPage() {
   const t = useMessages();
+  const tFooter = useTranslations("Footer");
   const locale = useLocale();
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -323,7 +324,10 @@ export default function SignupPage() {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            © 2025 AI Recruiting CRM. All rights reserved.
+            {tFooter("copyright", {
+              year: new Date().getFullYear(),
+              brandName: tFooter("brandName"),
+            })}
           </p>
         </div>
       </div>

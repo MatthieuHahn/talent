@@ -308,6 +308,55 @@ exports.Prisma.ActivityScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.SubscriptionScalarFieldEnum = {
+  id: 'id',
+  stripeSubscriptionId: 'stripeSubscriptionId',
+  stripeCustomerId: 'stripeCustomerId',
+  stripePriceId: 'stripePriceId',
+  status: 'status',
+  currentPeriodStart: 'currentPeriodStart',
+  currentPeriodEnd: 'currentPeriodEnd',
+  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
+  canceledAt: 'canceledAt',
+  trialStart: 'trialStart',
+  trialEnd: 'trialEnd',
+  organizationId: 'organizationId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PaymentScalarFieldEnum = {
+  id: 'id',
+  stripePaymentIntentId: 'stripePaymentIntentId',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  description: 'description',
+  metadata: 'metadata',
+  subscriptionId: 'subscriptionId',
+  organizationId: 'organizationId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InvoiceScalarFieldEnum = {
+  id: 'id',
+  stripeInvoiceId: 'stripeInvoiceId',
+  subscriptionId: 'subscriptionId',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  invoicePdf: 'invoicePdf',
+  hostedInvoiceUrl: 'hostedInvoiceUrl',
+  periodStart: 'periodStart',
+  periodEnd: 'periodEnd',
+  dueDate: 'dueDate',
+  paidAt: 'paidAt',
+  organizationId: 'organizationId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -338,6 +387,7 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 exports.SubscriptionPlan = exports.$Enums.SubscriptionPlan = {
+  FREE: 'FREE',
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
   ENTERPRISE: 'ENTERPRISE',
@@ -451,6 +501,24 @@ exports.ActivityType = exports.$Enums.ActivityType = {
   BATCH_UPLOAD_FAILED: 'BATCH_UPLOAD_FAILED'
 };
 
+exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
+  ACTIVE: 'ACTIVE',
+  PAST_DUE: 'PAST_DUE',
+  CANCELED: 'CANCELED',
+  UNPAID: 'UNPAID',
+  TRIALING: 'TRIALING',
+  INCOMPLETE: 'INCOMPLETE',
+  INCOMPLETE_EXPIRED: 'INCOMPLETE_EXPIRED'
+};
+
+exports.PaymentStatus = exports.$Enums.PaymentStatus = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  CANCELED: 'CANCELED',
+  REFUNDED: 'REFUNDED'
+};
+
 exports.Prisma.ModelName = {
   Organization: 'Organization',
   User: 'User',
@@ -460,7 +528,10 @@ exports.Prisma.ModelName = {
   JobApplication: 'JobApplication',
   MatchingResult: 'MatchingResult',
   Interview: 'Interview',
-  Activity: 'Activity'
+  Activity: 'Activity',
+  Subscription: 'Subscription',
+  Payment: 'Payment',
+  Invoice: 'Invoice'
 };
 
 /**

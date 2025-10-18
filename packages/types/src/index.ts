@@ -11,6 +11,9 @@ export type {
   Company,
   JobApplication,
   MatchingResult,
+  Subscription,
+  Payment,
+  Invoice,
 } from "./generated";
 
 // Export enums
@@ -22,6 +25,8 @@ export {
   JobStatus,
   Priority,
   SubscriptionPlan,
+  SubscriptionStatus,
+  PaymentStatus,
   ApplicationStatus,
 } from "./generated";
 

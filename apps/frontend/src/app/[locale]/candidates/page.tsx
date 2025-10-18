@@ -17,7 +17,7 @@ import {
   UserPlus,
   Search,
 } from "lucide-react";
-import { Candidate } from "@talent/types";
+import { Candidate, CandidateStatus } from "@talent/types";
 
 // Extended type for API responses that includes computed fields
 type CandidateWithStats = Candidate & {
@@ -170,8 +170,9 @@ export default function CandidatesPage() {
                   </p>
                   <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                     {
-                      candidates.candidates.filter((c) => c.status === "active")
-                        .length
+                      candidates.candidates.filter(
+                        (c) => c.status === CandidateStatus.ACTIVE
+                      ).length
                     }
                   </p>
                 </div>

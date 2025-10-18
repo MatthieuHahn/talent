@@ -36,6 +36,9 @@ model Organization {
   jobs            Job[]
   matchingResults MatchingResult[]
   users           User[]
+  subscription    Subscription?
+  payments        Payment[]
+  invoices        Invoice[]
 
   @@map("organizations")
 }
@@ -266,6 +269,7 @@ model Activity {
 }
 
 enum SubscriptionPlan {
+  FREE
   STARTER
   PROFESSIONAL
   ENTERPRISE
@@ -377,4 +381,84 @@ enum ActivityType {
   BATCH_UPLOAD_STARTED
   BATCH_UPLOAD_COMPLETED
   BATCH_UPLOAD_FAILED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  TRIALING
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
+  REFUNDED
+}
+
+model Subscription {
+  id                    String             @id @default(cuid())
+  stripeSubscriptionId  String             @unique
+  stripeCustomerId      String
+  stripePriceId         String
+  status                SubscriptionStatus
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  cancelAtPeriodEnd     Boolean            @default(false)
+  canceledAt            DateTime?
+  trialStart            DateTime?
+  trialEnd              DateTime?
+  organizationId        String             @unique
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  organization          Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  payments              Payment[]
+  invoices              Invoice[]
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  stripePaymentIntentId String        @unique
+  amount                Int // Amount in cents
+  currency              String        @default("usd")
+  status                PaymentStatus
+  description           String?
+  metadata              Json?
+  subscriptionId        String?
+  organizationId        String
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  subscription          Subscription? @relation(fields: [subscriptionId], references: [id])
+  organization          Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Invoice {
+  id               String   @id @default(cuid())
+  stripeInvoiceId  String   @unique
+  subscriptionId   String
+  amount           Int // Amount in cents
+  currency         String   @default("usd")
+  status           String
+  invoicePdf       String?
+  hostedInvoiceUrl String?
+  periodStart      DateTime
+  periodEnd        DateTime
+  dueDate          DateTime?
+  paidAt           DateTime?
+  organizationId   String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  subscription     Subscription @relation(fields: [subscriptionId], references: [id])
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
 }

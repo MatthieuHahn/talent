@@ -1,25 +1,37 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 
 export default function Footer() {
-  const t = useTranslations('Footer');
+  const t = useTranslations("Footer");
 
   return (
     <footer className="bg-[var(--color-card)] border-t border-[var(--color-border)] py-8 mt-20">
       <div className="max-w-7xl mx-auto px-6 text-center text-[var(--color-secondary)]">
         <p className="text-sm">
-          &copy; {new Date().getFullYear()} AI Recruiting CRM. All rights reserved.
+          {t("copyright", {
+            year: new Date().getFullYear(),
+            brandName: t("brandName"),
+          })}
         </p>
         <div className="mt-2 flex justify-center gap-4 text-[var(--color-primary)]">
-          <a href="/privacy" className="hover:text-[var(--color-accent)] transition">
-            Privacy Policy
+          <a
+            href="/privacy"
+            className="hover:text-[var(--color-accent)] transition"
+          >
+            {t("privacyPolicy")}
           </a>
-          <a href="/terms" className="hover:text-[var(--color-accent)] transition">
-            Terms of Service
+          <a
+            href="/terms"
+            className="hover:text-[var(--color-accent)] transition"
+          >
+            {t("termsOfService")}
           </a>
-          <a href="/contact" className="hover:text-[var(--color-accent)] transition">
-            Contact
+          <a
+            href="/contact"
+            className="hover:text-[var(--color-accent)] transition"
+          >
+            {t("contact")}
           </a>
         </div>
       </div>

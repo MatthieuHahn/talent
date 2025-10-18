@@ -253,25 +253,26 @@ export class MatchingService {
       throw new Error('Invalid job embedding format');
     }
 
-    // Find candidates with embeddings using regular SQL with cosine similarity calculation
-    const candidates = await this.prisma.$queryRaw`
-      SELECT 
-        c.id,
-        c."firstName",
-        c."lastName",
-        c.email,
-        c.phone,
-        c.skills,
-        c."yearsOfExperience" as experience,
-        c.summary,
-        c."embedding"
-      FROM "candidates" c
-      WHERE 
-        c."organizationId" = ${organizationId}
-        AND c."embedding" IS NOT NULL
-        AND c.status NOT IN ('REJECTED', 'BLACKLISTED')
-      LIMIT 50
-    `;
+    // Find candidates with embeddings using Prisma's type-safe methods
+    const candidates = await this.prisma.candidate.findMany({
+      where: {
+        organizationId,
+        embedding: { not: null },
+        status: { notIn: ['REJECTED', 'BLACKLISTED'] },
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        skills: true,
+        yearsOfExperience: true,
+        summary: true,
+        embedding: true,
+      },
+      take: 50,
+    });
 
     // Calculate cosine similarity in JavaScript since pgvector is not available
     const candidatesWithSimilarity = candidates.map((candidate) => {
@@ -311,11 +312,11 @@ export class MatchingService {
         lastName: candidate.lastName,
         email: candidate.email,
         phone: candidate.phone,
-        skills: Array.isArray(candidate.skills) ? candidate.skills : [],
-        experience: candidate.experience || 0,
-        summary: candidate.summary,
+        skills: this.extractSkillsArray(candidate.skills),
+        experience: candidate.yearsOfExperience || 0,    
+        summary: candidate.summary || undefined,
       },
-      embeddingSimilarity: parseFloat(candidate.similarity) || 0,
+      embeddingSimilarity: candidate.similarity || 0,
       skillMatches: this.analyzeSkillMatches(job, candidate),
     }));
   }
@@ -691,25 +692,28 @@ Respond in JSON format:
       throw new Error('Invalid candidate embedding format');
     }
 
-    // Find similar candidates with embeddings using regular SQL
-    const candidates = await this.prisma.$queryRaw`
-      SELECT 
-        c.id,
-        c."firstName",
-        c."lastName",
-        c.email,
-        c.skills,
-        c."yearsOfExperience" as experience,
-        c.summary,
-        c."embedding"
-      FROM "candidates" c
-      WHERE 
-        c."organizationId" = ${organizationId}
-        AND c.id != ${candidateId}
-        AND c."embedding" IS NOT NULL
-        AND c.status NOT IN ('REJECTED', 'BLACKLISTED')
-      LIMIT 50
-    `;
+    // Alternative: Use Prisma's findMany instead of raw query
+    // This is functionally equivalent but uses Prisma's type-safe methods
+    const candidates = await this.prisma.candidate.findMany({
+      where: {
+        organizationId,
+        id: { not: candidateId },
+        embedding: { not: null },
+        status: { notIn: ['REJECTED', 'BLACKLISTED'] },
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        skills: true,
+        yearsOfExperience: true,
+        summary: true,
+        embedding: true,
+      },
+      take: 50,
+    });
 
     // Calculate cosine similarity in JavaScript since pgvector is not available
     const candidatesWithSimilarity = candidates.map((c) => {
@@ -727,6 +731,7 @@ Respond in JSON format:
         candidateEmbedding,
         cEmbedding,
       );
+
       return { ...c, similarity };
     });
 
@@ -742,12 +747,12 @@ Respond in JSON format:
         lastName: c.lastName,
         email: c.email,
         phone: c.phone,
-        skills: Array.isArray(c.skills) ? c.skills : [],
-        experience: c.experience || 0,
-        summary: c.summary,
+        skills: this.extractSkillsArray(c.skills),
+        experience: c.yearsOfExperience || 0,
+        summary: c.summary || undefined,
       },
-      score: parseFloat(c.similarity) * 100,
-      embeddingSimilarity: parseFloat(c.similarity),
+      score: c.similarity * 100,
+      embeddingSimilarity: c.similarity,
       skillMatches: this.analyzeSkillMatches(candidate, c),
       aiAnalysis: undefined, // Will be populated if needed
     }));
