@@ -15,7 +15,65 @@ import {
   UpdateJobDto,
   JobQueryDto,
 } from './dto/job.dto';
-import { JobStatus, JobType, JobLevel, Priority } from '@prisma/client';
+import {
+  JobStatus,
+  JobType,
+  JobLevel,
+  Priority,
+  Job,
+  Organization,
+  User,
+} from '@talent/types';
+
+// Type definitions for enriched job objects
+type JobWithListRelations = Job & {
+  company: { id: string; name: string };
+  recruiter: { id: string; firstName: string; lastName: string; email: string };
+  applications: { id: string; status: any }[];
+  _count: { applications: number };
+};
+
+type JobsListResponse = {
+  jobs: JobWithListRelations[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+};
+
+type JobWithDetailRelations = Job & {
+  organization: Organization;
+  company: any; // TODO: Define proper company type
+  recruiter: { id: string; firstName: string; lastName: string; email: string };
+  applications: Array<{
+    id: string;
+    status: any;
+    candidate: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      status: any;
+    };
+  }>;
+};
+
+type JobWithCreateRelations = Job & {
+  organization: Organization;
+  company: any;
+  recruiter: { id: string; firstName: string; lastName: string; email: string };
+  applications: any[]; // Just applications without candidate relation
+};
+
+type JobStatsResponse = {
+  totalJobs: number;
+  activeJobs: number;
+  draftJobs: number;
+  filledJobs: number;
+  totalApplications: number;
+};
 
 @Injectable()
 export class JobsService {
@@ -92,7 +150,7 @@ export class JobsService {
     createJobDto: CreateJobDto,
     organizationId: string,
     recruiterId: string,
-  ): Promise<any> {
+  ): Promise<JobWithCreateRelations> {
     try {
       // Ensure we have valid IDs
       const {
@@ -175,7 +233,7 @@ export class JobsService {
     createJobWithAIDto: CreateJobWithAIDto,
     organizationId: string,
     recruiterId: string,
-  ): Promise<any> {
+  ): Promise<JobWithCreateRelations> {
     try {
       this.logger.log('Creating job with AI-generated description...');
 
@@ -242,7 +300,7 @@ export class JobsService {
     organizationId: string,
     recruiterId: string,
     additionalData?: CreateJobFromFileDto,
-  ): Promise<any> {
+  ): Promise<JobWithCreateRelations> {
     try {
       this.logger.log('Creating job from uploaded file...');
 
@@ -457,7 +515,10 @@ export class JobsService {
     return undefined;
   }
 
-  async findAll(organizationId: string, query?: JobQueryDto): Promise<any> {
+  async findAll(
+    organizationId: string,
+    query?: JobQueryDto,
+  ): Promise<JobsListResponse> {
     try {
       // Ensure we have valid organization ID
       const { organizationId: validOrgId } =
@@ -553,7 +614,10 @@ export class JobsService {
     }
   }
 
-  async findOne(id: string, organizationId: string): Promise<any> {
+  async findOne(
+    id: string,
+    organizationId: string,
+  ): Promise<JobWithDetailRelations> {
     try {
       // Ensure we have valid organization ID
       const { organizationId: validOrgId } =
@@ -608,7 +672,7 @@ export class JobsService {
     id: string,
     organizationId: string,
     updateJobDto: UpdateJobDto,
-  ): Promise<any> {
+  ): Promise<JobWithCreateRelations> {
     try {
       // Ensure we have valid organization ID
       const { organizationId: validOrgId } =
@@ -709,7 +773,7 @@ export class JobsService {
     }
   }
 
-  async getJobStats(organizationId: string): Promise<any> {
+  async getJobStats(organizationId: string): Promise<JobStatsResponse> {
     try {
       // Ensure we have valid organization ID
       const { organizationId: validOrgId } =

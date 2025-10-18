@@ -1,12 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CandidateStatus } from '../candidates/dto/candidate.dto';
+import { CandidateStatus } from '@talent/types';
 
 @Injectable()
 export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
-  async getDashboardStats(organizationId: string) {
+  async getDashboardStats(organizationId: string): Promise<{
+    totalCandidates: number;
+    activeCandidates: number;
+    newThisWeek: number;
+    hiredThisMonth: number;
+  }> {
     // Get current date and calculate time ranges
     const now = new Date();
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -64,7 +69,20 @@ export class DashboardService {
     };
   }
 
-  async getRecentCandidates(organizationId: string, limit: number = 5) {
+  async getRecentCandidates(
+    organizationId: string,
+    limit: number = 5,
+  ): Promise<
+    Array<{
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      status: CandidateStatus;
+      createdAt: Date;
+      updatedAt: Date;
+    }>
+  > {
     return this.prisma.candidate.findMany({
       where: { organizationId },
       orderBy: { createdAt: 'desc' },

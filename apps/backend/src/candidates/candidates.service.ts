@@ -9,6 +9,13 @@ import { OpenAiService } from '../openai/openai.service';
 import { FileParsingService } from '../file-parsing/file-parsing.service';
 import { S3Service } from '../s3/s3.service';
 import {
+  Candidate,
+  MatchingResult,
+  JobApplication,
+  Organization,
+  Job,
+} from '@talent/types';
+import {
   CreateCandidateDto,
   CreateCandidateFromResumeDto,
   UpdateCandidateDto,
@@ -17,6 +24,35 @@ import {
   CandidateStatus,
   ParsedResumeData,
 } from './dto/candidate.dto';
+
+// Type definitions for enriched candidate objects
+type CandidateWithRelations = Candidate & {
+  organization: Organization;
+  applications: JobApplication[];
+};
+
+type CandidateWithMatching = CandidateWithRelations & {
+  matchingResults: (MatchingResult & { job: Job })[];
+};
+
+type CandidateWithCounts = CandidateWithRelations & {
+  matchedJobsCount: number;
+  appliedJobsCount: number;
+};
+
+type CandidateMatchResult = {
+  candidate: Candidate;
+  matchScore: number;
+  matchDetails: any; // TODO: Define proper type for match details
+};
+
+type CandidatesListResponse = {
+  candidates: CandidateWithCounts[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
 
 @Injectable()
 export class CandidatesService {
@@ -75,7 +111,7 @@ export class CandidatesService {
     organizationId: string,
     userId: string,
     additionalData?: CreateCandidateFromResumeDto,
-  ): Promise<any> {
+  ): Promise<CandidateWithRelations> {
     try {
       // Ensure we have valid user and organization IDs
       const { userId: validUserId, organizationId: validOrgId } =
@@ -208,7 +244,7 @@ export class CandidatesService {
     data: CreateCandidateDto,
     organizationId: string,
     userId: string,
-  ): Promise<any> {
+  ): Promise<CandidateWithRelations> {
     // Check if candidate with this email already exists
     const existingCandidate = await this.prisma.candidate.findFirst({
       where: {
@@ -265,13 +301,7 @@ export class CandidatesService {
   async findAll(
     organizationId: string,
     query: CandidateQueryDto,
-  ): Promise<{
-    candidates: any[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  }> {
+  ): Promise<CandidatesListResponse> {
     // Ensure we have valid organization ID
     const { organizationId: validOrgId } = await this.ensureDefaultUserAndOrg();
     const actualOrgId =
@@ -345,7 +375,7 @@ export class CandidatesService {
 
     // Compute matchedJobsCount for each candidate in bulk
     const candidateIds = candidates.map((c) => c.id);
-    let matchedCounts: Record<string, number> = {};
+    const matchedCounts: Record<string, number> = {};
     if (candidateIds.length > 0) {
       const grouped = await this.prisma.matchingResult.groupBy({
         by: ['candidateId'],
@@ -381,7 +411,10 @@ export class CandidatesService {
     };
   }
 
-  async findOne(id: string, organizationId: string): Promise<any> {
+  async findOne(
+    id: string,
+    organizationId: string,
+  ): Promise<CandidateWithMatching> {
     // Ensure we have valid organization ID
     const { organizationId: validOrgId } = await this.ensureDefaultUserAndOrg();
     const actualOrgId =
@@ -420,7 +453,6 @@ export class CandidatesService {
       },
     });
 
-
     return {
       ...candidate,
       matchingResults,
@@ -431,7 +463,7 @@ export class CandidatesService {
     id: string,
     organizationId: string,
     data: UpdateCandidateDto,
-  ): Promise<any> {
+  ): Promise<CandidateWithRelations> {
     const candidate = await this.findOne(id, organizationId);
 
     return this.prisma.candidate.update({
@@ -444,7 +476,7 @@ export class CandidatesService {
     });
   }
 
-  async remove(id: string, organizationId: string): Promise<any> {
+  async remove(id: string, organizationId: string): Promise<Candidate> {
     const candidate = await this.findOne(id, organizationId);
 
     return this.prisma.candidate.delete({
@@ -455,13 +487,7 @@ export class CandidatesService {
   async matchCandidatesToJob(
     organizationId: string,
     matchData: MatchCandidatesDto,
-  ): Promise<
-    Array<{
-      candidate: any;
-      matchScore: number;
-      matchDetails: any;
-    }>
-  > {
+  ): Promise<CandidateMatchResult[]> {
     // Get the job with embedding
     const job = await this.prisma.job.findFirst({
       where: {

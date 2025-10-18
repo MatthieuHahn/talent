@@ -1,0 +1,380 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator types {
+  provider = "prisma-client-js"
+  output   = "../../../packages/types/src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id              String           @id @default(cuid())
+  slug            String           @unique
+  name            String
+  brandConfig     Json?
+  domain          String?
+  subdomain       String?
+  plan            SubscriptionPlan @default(STARTER)
+  maxUsers        Int              @default(5)
+  maxJobs         Int              @default(50)
+  isActive        Boolean          @default(true)
+  trialEndsAt     DateTime?
+  contactEmail    String
+  billingEmail    String?
+  contactPhone    String?
+  billingAddress  Json?
+  features        Json             @default("{\"apiAccess\": false, \"aiAssisted\": true, \"customBranding\": false}")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  candidates      Candidate[]
+  companies       Company[]
+  jobs            Job[]
+  matchingResults MatchingResult[]
+  users           User[]
+
+  @@map("organizations")
+}
+
+model User {
+  id                  String       @id @default(cuid())
+  email               String       @unique
+  firstName           String
+  lastName            String
+  password            String
+  role                UserRole     @default(RECRUITER)
+  companyId           String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  lastLogin           DateTime?
+  isActive            Boolean      @default(true)
+  organizationId      String
+  activities          Activity[]
+  candidates          Candidate[]
+  conductedInterviews Interview[]  @relation("InterviewerToInterview")
+  jobs                Job[]
+  company             Company?     @relation(fields: [companyId], references: [id])
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("users")
+}
+
+model Company {
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  website        String?
+  logo           String?
+  email          String?
+  phone          String?
+  address        String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organizationId String
+  candidates     Candidate[]
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  jobs           Job[]
+  users          User[]
+
+  @@map("companies")
+}
+
+model Candidate {
+  id                 String           @id @default(cuid())
+  email              String
+  firstName          String
+  lastName           String
+  phone              String?
+  linkedin           String?
+  github             String?
+  portfolio          String?
+  resume             String?
+  summary            String?
+  resumeUrl          String?
+  status             CandidateStatus  @default(ACTIVE)
+  location           String?
+  timezone           String?
+  yearsOfExperience  Int?
+  currentSalary      Float?
+  expectedSalary     Float?
+  availability       DateTime?
+  source             String?
+  notes              String?
+  tags               String[]
+  companyId          String?
+  addedById          String
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  organizationId     String
+  certifications     Json?
+  currentRole        String?
+  education          Json?
+  experience         Json?
+  industryExperience String[]
+  projects           Json?
+  salaryExpectation  Json?
+  skills             Json?
+  embedding          String?
+  embeddingAt        DateTime?
+  embeddingModel     String?
+  activities         Activity[]
+  addedBy            User             @relation(fields: [addedById], references: [id])
+  company            Company?         @relation(fields: [companyId], references: [id])
+  organization       Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  interviews         Interview[]
+  applications       JobApplication[]
+  matchingResults    MatchingResult[]
+
+  @@unique([email, organizationId])
+  @@map("candidates")
+}
+
+model Job {
+  id                   String           @id @default(cuid())
+  title                String
+  description          String
+  requirements         String?
+  department           String?
+  location             String?
+  remote               Boolean          @default(false)
+  type                 JobType          @default(FULL_TIME)
+  level                JobLevel         @default(MID)
+  salaryMin            Float?
+  salaryMax            Float?
+  currency             String           @default("USD")
+  status               JobStatus        @default(DRAFT)
+  priority             Priority         @default(MEDIUM)
+  startDate            DateTime?
+  endDate              DateTime?
+  deadline             DateTime?
+  companyId            String
+  recruiterId          String
+  jobDescriptionUrl    String?
+  aiGenerated          Boolean          @default(false)
+  aiPrompt             String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  organizationId       String
+  applicationInfo      Json?
+  benefits             Json?
+  metadata             Json?
+  requirementsDetailed Json?
+  responsibilities     Json?
+  jobInfo              Json?
+  embedding            String?
+  embeddingAt          DateTime?
+  embeddingModel       String?
+  activities           Activity[]
+  interviews           Interview[]
+  applications         JobApplication[]
+  company              Company          @relation(fields: [companyId], references: [id])
+  organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  recruiter            User             @relation(fields: [recruiterId], references: [id])
+  matchingResults      MatchingResult[]
+
+  @@map("jobs")
+}
+
+model JobApplication {
+  id          String            @id @default(cuid())
+  status      ApplicationStatus @default(APPLIED)
+  appliedAt   DateTime          @default(now())
+  coverLetter String?
+  notes       String?
+  rating      Float?
+  fitScore    Float?
+  candidateId String
+  jobId       String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  activities  Activity[]
+  interviews  Interview[]
+  candidate   Candidate         @relation(fields: [candidateId], references: [id])
+  job         Job               @relation(fields: [jobId], references: [id])
+
+  @@unique([candidateId, jobId])
+  @@map("job_applications")
+}
+
+model MatchingResult {
+  id                  String       @id @default(cuid())
+  jobId               String
+  candidateId         String
+  score               Float
+  embeddingSimilarity Float
+  skillMatches        Json
+  aiAnalysis          Json?
+  calculatedAt        DateTime     @default(now())
+  expiresAt           DateTime
+  organizationId      String
+  candidate           Candidate    @relation(fields: [candidateId], references: [id])
+  job                 Job          @relation(fields: [jobId], references: [id])
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, candidateId])
+  @@map("matching_results")
+}
+
+model Interview {
+  id            String            @id @default(cuid())
+  title         String
+  type          InterviewType     @default(PHONE)
+  status        InterviewStatus   @default(SCHEDULED)
+  scheduledAt   DateTime
+  duration      Int               @default(60)
+  timezone      String?
+  location      String?
+  notes         String?
+  feedback      String?
+  rating        Float?
+  outcome       InterviewOutcome?
+  candidateId   String
+  jobId         String
+  applicationId String?
+  interviewerId String
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  application   JobApplication?   @relation(fields: [applicationId], references: [id])
+  candidate     Candidate         @relation(fields: [candidateId], references: [id])
+  interviewer   User              @relation("InterviewerToInterview", fields: [interviewerId], references: [id])
+  job           Job               @relation(fields: [jobId], references: [id])
+
+  @@map("interviews")
+}
+
+model Activity {
+  id            String          @id @default(cuid())
+  type          ActivityType
+  title         String
+  description   String?
+  metadata      Json?
+  userId        String?
+  candidateId   String?
+  jobId         String?
+  applicationId String?
+  createdAt     DateTime        @default(now())
+  application   JobApplication? @relation(fields: [applicationId], references: [id])
+  candidate     Candidate?      @relation(fields: [candidateId], references: [id])
+  job           Job?            @relation(fields: [jobId], references: [id])
+  user          User?           @relation(fields: [userId], references: [id])
+
+  @@map("activities")
+}
+
+enum SubscriptionPlan {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+  CUSTOM
+}
+
+enum UserRole {
+  ADMIN
+  RECRUITER
+  HIRING_MANAGER
+  INTERVIEWER
+}
+
+enum CandidateStatus {
+  ACTIVE
+  INACTIVE
+  HIRED
+  REJECTED
+  BLACKLISTED
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  FREELANCE
+  INTERNSHIP
+}
+
+enum JobLevel {
+  ENTRY
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+  PRINCIPAL
+  EXECUTIVE
+}
+
+enum JobStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  CLOSED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ApplicationStatus {
+  APPLIED
+  REVIEWING
+  PHONE_SCREEN
+  INTERVIEW
+  TECHNICAL_TEST
+  FINAL_INTERVIEW
+  REFERENCE_CHECK
+  OFFER_MADE
+  OFFER_ACCEPTED
+  OFFER_REJECTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum InterviewType {
+  PHONE
+  VIDEO
+  IN_PERSON
+  TECHNICAL
+  BEHAVIORAL
+  CULTURAL_FIT
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum InterviewOutcome {
+  PASS
+  FAIL
+  MAYBE
+  NO_SHOW
+}
+
+enum ActivityType {
+  CANDIDATE_ADDED
+  CANDIDATE_UPDATED
+  JOB_CREATED
+  JOB_UPDATED
+  APPLICATION_SUBMITTED
+  APPLICATION_STATUS_CHANGED
+  INTERVIEW_SCHEDULED
+  INTERVIEW_COMPLETED
+  NOTE_ADDED
+  EMAIL_SENT
+  CALL_MADE
+  AI_MATCH_FOUND
+  ORGANIZATION_CREATED
+  USER_INVITED
+  BATCH_UPLOAD_STARTED
+  BATCH_UPLOAD_COMPLETED
+  BATCH_UPLOAD_FAILED
+}

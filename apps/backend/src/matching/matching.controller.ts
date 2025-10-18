@@ -14,6 +14,7 @@ import {
 import { MatchingService } from './matching.service';
 import { JwtAuthGuard } from '../auth/guards/auth.guard';
 import { User } from '../auth/decorators/user.decorator';
+import { JobApplication } from '@talent/types';
 
 @Controller('matching')
 @UseGuards(JwtAuthGuard)
@@ -30,7 +31,7 @@ export class MatchingController {
     @Param('candidateId') candidateId: string,
     @User() user: any,
     @Body('status') status: string,
-  ) {
+  ): Promise<JobApplication> {
     if (!status) {
       throw new BadRequestException('Status is required');
     }
@@ -52,7 +53,7 @@ export class MatchingController {
     @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit: number = 5,
     @Query('forceRematch', new DefaultValuePipe(false))
     forceRematch: boolean = false,
-  ) {
+  ): Promise<any[]> {
     return this.matchingService.findBestCandidatesForJob(
       jobId,
       user.organizationId,
@@ -69,7 +70,7 @@ export class MatchingController {
     @Param('candidateId') candidateId: string,
     @User() user: any,
     @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit: number = 5,
-  ) {
+  ): Promise<any[]> {
     return this.matchingService.findSimilarCandidates(
       candidateId,
       user.organizationId,
@@ -85,7 +86,13 @@ export class MatchingController {
     @Param('jobId') jobId: string,
     @Param('candidateId') candidateId: string,
     @User() user: any,
-  ) {
+  ): Promise<{
+    aiAnalysis: any;
+    skillMatches: any;
+    score: number | null;
+    embeddingSimilarity: number | null;
+    fromCache: boolean;
+  }> {
     // First check for cached results
     const cachedResult =
       await this.matchingService.getCachedSingleMatchingResult(

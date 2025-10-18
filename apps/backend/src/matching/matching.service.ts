@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import OpenAI from 'openai';
-import { ApplicationStatus } from '@prisma/client';
+import {
+  ApplicationStatus,
+  Candidate,
+  Job,
+  MatchingResult as PrismaMatchingResult,
+  JobApplication,
+} from '@talent/types';
 
 export interface MatchingResult {
   candidateId: string;
@@ -57,7 +63,7 @@ export class MatchingService {
     candidateId: string,
     status: string,
     organizationId: string,
-  ): Promise<any> {
+  ): Promise<JobApplication> {
     // Ensure job and candidate exist and belong to the organization
     const [job, candidate] = await Promise.all([
       this.prisma.job.findUnique({ where: { id: jobId } }),
@@ -248,7 +254,7 @@ export class MatchingService {
     }
 
     // Find candidates with embeddings using regular SQL with cosine similarity calculation
-    const candidates = (await this.prisma.$queryRaw`
+    const candidates = await this.prisma.$queryRaw`
       SELECT 
         c.id,
         c."firstName",
@@ -265,7 +271,7 @@ export class MatchingService {
         AND c."embedding" IS NOT NULL
         AND c.status NOT IN ('REJECTED', 'BLACKLISTED')
       LIMIT 50
-    `) as any[];
+    `;
 
     // Calculate cosine similarity in JavaScript since pgvector is not available
     const candidatesWithSimilarity = candidates.map((candidate) => {
@@ -686,7 +692,7 @@ Respond in JSON format:
     }
 
     // Find similar candidates with embeddings using regular SQL
-    const candidates = (await this.prisma.$queryRaw`
+    const candidates = await this.prisma.$queryRaw`
       SELECT 
         c.id,
         c."firstName",
@@ -703,7 +709,7 @@ Respond in JSON format:
         AND c."embedding" IS NOT NULL
         AND c.status NOT IN ('REJECTED', 'BLACKLISTED')
       LIMIT 50
-    `) as any[];
+    `;
 
     // Calculate cosine similarity in JavaScript since pgvector is not available
     const candidatesWithSimilarity = candidates.map((c) => {
@@ -750,7 +756,7 @@ Respond in JSON format:
   /**
    * Get job by ID for the organization
    */
-  async getJob(jobId: string, organizationId: string) {
+  async getJob(jobId: string, organizationId: string): Promise<Job | null> {
     return this.prisma.job.findUnique({
       where: { id: jobId, organizationId },
     });
@@ -759,7 +765,10 @@ Respond in JSON format:
   /**
    * Get candidate by ID for the organization
    */
-  async getCandidate(candidateId: string, organizationId: string) {
+  async getCandidate(
+    candidateId: string,
+    organizationId: string,
+  ): Promise<Candidate | null> {
     return this.prisma.candidate.findUnique({
       where: { id: candidateId, organizationId },
     });

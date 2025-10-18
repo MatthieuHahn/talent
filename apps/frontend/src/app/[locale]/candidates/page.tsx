@@ -17,22 +17,16 @@ import {
   UserPlus,
   Search,
 } from "lucide-react";
+import { Candidate } from "@talent/types";
 
-type Candidate = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  status?: string;
-  yearsOfExperience?: number;
-  tags?: string[];
+// Extended type for API responses that includes computed fields
+type CandidateWithStats = Candidate & {
   matchedJobsCount?: number;
   appliedJobsCount?: number;
 };
 
 type CandidateResponse = {
-  candidates: Candidate[];
+  candidates: CandidateWithStats[];
   limit: number;
   page: number;
   total: number;

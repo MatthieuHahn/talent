@@ -17,6 +17,7 @@ import { JobsService } from './jobs.service';
 import { S3Service } from '../s3/s3.service';
 import { User, JwtAuthGuard } from '../auth';
 import type { AuthenticatedUser } from '../auth';
+import { Job, Organization, User as UserType } from '@talent/types';
 import {
   CreateJobDto,
   CreateJobWithAIDto,
@@ -24,6 +25,56 @@ import {
   UpdateJobDto,
   JobQueryDto,
 } from './dto/job.dto';
+
+// Type definitions for API responses
+type JobWithListRelations = Job & {
+  company: { id: string; name: string };
+  recruiter: { id: string; firstName: string; lastName: string; email: string };
+  applications: { id: string; status: any }[];
+  _count: { applications: number };
+};
+
+type JobWithDetailRelations = Job & {
+  organization: Organization;
+  company: any;
+  recruiter: { id: string; firstName: string; lastName: string; email: string };
+  applications: Array<{
+    id: string;
+    status: any;
+    candidate: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      status: any;
+    };
+  }>;
+};
+
+type JobWithCreateRelations = Job & {
+  organization: Organization;
+  company: any;
+  recruiter: { id: string; firstName: string; lastName: string; email: string };
+  applications: any[];
+};
+
+type JobsListResponse = {
+  jobs: JobWithListRelations[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+};
+
+type JobStatsResponse = {
+  totalJobs: number;
+  activeJobs: number;
+  draftJobs: number;
+  filledJobs: number;
+  totalApplications: number;
+};
 
 @Controller('jobs')
 @UseGuards(JwtAuthGuard)
@@ -37,7 +88,7 @@ export class JobsController {
   async getJobDescriptionUrl(
     @Param('id') id: string,
     @User() user: AuthenticatedUser,
-  ) {
+  ): Promise<{ url: string }> {
     const organizationId = user.organizationId;
     const job = await this.jobsService.findOne(id, organizationId);
     if (!job || !job.jobDescriptionUrl) {
@@ -61,7 +112,7 @@ export class JobsController {
   async create(
     @Body() createJobDto: CreateJobDto,
     @User() user: AuthenticatedUser,
-  ) {
+  ): Promise<JobWithCreateRelations> {
     // Get organization and user from JWT token
     const organizationId = user.organizationId;
     const recruiterId = user.id;
@@ -79,7 +130,7 @@ export class JobsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() additionalData: CreateJobFromFileDto,
     @User() user: AuthenticatedUser,
-  ) {
+  ): Promise<JobWithCreateRelations> {
     if (!file) {
       throw new BadRequestException('Job description file is required');
     }
@@ -100,7 +151,7 @@ export class JobsController {
   async createWithAI(
     @Body() createJobWithAIDto: CreateJobWithAIDto,
     @User() user: AuthenticatedUser,
-  ) {
+  ): Promise<JobWithCreateRelations> {
     // Get organization and user from JWT token
     const organizationId = user.organizationId;
     const recruiterId = user.id;
@@ -113,7 +164,10 @@ export class JobsController {
   }
 
   @Get()
-  async findAll(@Query() query: JobQueryDto, @User() user: AuthenticatedUser) {
+  async findAll(
+    @Query() query: JobQueryDto,
+    @User() user: AuthenticatedUser,
+  ): Promise<JobsListResponse> {
     // Get organization from JWT token
     const organizationId = user.organizationId;
 
@@ -121,7 +175,7 @@ export class JobsController {
   }
 
   @Get('stats')
-  async getStats(@User() user: AuthenticatedUser) {
+  async getStats(@User() user: AuthenticatedUser): Promise<JobStatsResponse> {
     // Get organization from JWT token
     const organizationId = user.organizationId;
 
@@ -129,7 +183,10 @@ export class JobsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @User() user: AuthenticatedUser) {
+  async findOne(
+    @Param('id') id: string,
+    @User() user: AuthenticatedUser,
+  ): Promise<JobWithDetailRelations> {
     // Get organization from JWT token
     const organizationId = user.organizationId;
 
@@ -141,7 +198,7 @@ export class JobsController {
     @Param('id') id: string,
     @Body() updateJobDto: UpdateJobDto,
     @User() user: AuthenticatedUser,
-  ) {
+  ): Promise<JobWithCreateRelations> {
     // Get organization from JWT token
     const organizationId = user.organizationId;
 
@@ -149,7 +206,10 @@ export class JobsController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string, @User() user: AuthenticatedUser) {
+  async remove(
+    @Param('id') id: string,
+    @User() user: AuthenticatedUser,
+  ): Promise<void> {
     // Get organization from JWT token
     const organizationId = user.organizationId;
 

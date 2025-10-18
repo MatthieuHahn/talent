@@ -9,7 +9,7 @@ import {
   IsObject,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { JobType, JobLevel, JobStatus, Priority } from '@prisma/client';
+import { JobType, JobLevel, JobStatus, Priority } from '@talent/types';
 
 export interface ParsedJobData {
   jobInfo: {

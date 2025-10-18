@@ -1,0 +1,22 @@
+{
+  "name": "@talent/types",
+  "version": "0.0.1",
+  "description": "Shared TypeScript types for Talent CRM",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && cp -r src/generated dist/",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.17.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "prisma": "^6.17.0"
+  },
+  "peerDependencies": {
+    "@prisma/client": "^6.17.0"
+  }
+}

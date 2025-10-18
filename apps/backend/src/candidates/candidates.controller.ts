@@ -18,12 +18,54 @@ import { S3Service } from '../s3/s3.service';
 import { User, JwtAuthGuard } from '../auth';
 import type { AuthenticatedUser } from '../auth';
 import {
+  Candidate,
+  Organization,
+  JobApplication,
+  MatchingResult,
+  Job,
+} from '@talent/types';
+import {
   CreateCandidateDto,
   CreateCandidateFromResumeDto,
   UpdateCandidateDto,
   CandidateQueryDto,
   MatchCandidatesDto,
 } from './dto/candidate.dto';
+
+// Type definitions for API responses
+type CandidateWithRelations = Candidate & {
+  organization: Organization;
+  applications: JobApplication[];
+};
+
+type CandidateWithMatching = CandidateWithRelations & {
+  matchingResults: (MatchingResult & { job: Job })[];
+};
+
+type CandidatesListResponse = {
+  candidates: (CandidateWithRelations & {
+    matchedJobsCount: number;
+    appliedJobsCount: number;
+  })[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+type CandidateMatchResult = {
+  candidate: Candidate;
+  matchScore: number;
+  matchDetails: any;
+};
+
+type CandidateMatchScoreResponse =
+  | CandidateMatchResult
+  | {
+      candidate: CandidateWithMatching;
+      matchScore: number;
+      matchDetails: { error: string };
+    };
 
 @Controller('candidates')
 @UseGuards(JwtAuthGuard)
@@ -34,7 +76,10 @@ export class CandidatesController {
   ) {}
 
   @Get(':id/resume-url')
-  async getResumeUrl(@Param('id') id: string, @User() user: AuthenticatedUser) {
+  async getResumeUrl(
+    @Param('id') id: string,
+    @User() user: AuthenticatedUser,
+  ): Promise<{ url: string }> {
     const organizationId = user.organizationId;
     const candidate = await this.candidatesService.findOne(id, organizationId);
     if (!candidate || !candidate.resumeUrl) {
@@ -60,7 +105,7 @@ export class CandidatesController {
     @UploadedFile() file: Express.Multer.File,
     @Body() additionalData: CreateCandidateFromResumeDto,
     @User() user: AuthenticatedUser,
-  ) {
+  ): Promise<CandidateWithRelations> {
     if (!file) {
       throw new BadRequestException('Resume file is required');
     }
@@ -81,7 +126,7 @@ export class CandidatesController {
   async create(
     @Body() createCandidateDto: CreateCandidateDto,
     @User() user: AuthenticatedUser,
-  ) {
+  ): Promise<CandidateWithRelations> {
     // Get organization and user from JWT token
     const organizationId = user.organizationId;
     const userId = user.id;
@@ -97,7 +142,7 @@ export class CandidatesController {
   async findAll(
     @Query() query: CandidateQueryDto,
     @User() user: AuthenticatedUser,
-  ) {
+  ): Promise<CandidatesListResponse> {
     // Get organization and user from JWT token
     const organizationId = user.organizationId;
 
@@ -105,7 +150,10 @@ export class CandidatesController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @User() user: AuthenticatedUser) {
+  async findOne(
+    @Param('id') id: string,
+    @User() user: AuthenticatedUser,
+  ): Promise<CandidateWithMatching> {
     // Get organization and user from JWT token
     const organizationId = user.organizationId;
 
@@ -117,7 +165,7 @@ export class CandidatesController {
     @Param('id') id: string,
     @Body() updateCandidateDto: UpdateCandidateDto,
     @User() user: AuthenticatedUser,
-  ) {
+  ): Promise<CandidateWithRelations> {
     // Get organization and user from JWT token
     const organizationId = user.organizationId;
 
@@ -129,7 +177,10 @@ export class CandidatesController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string, @User() user: AuthenticatedUser) {
+  async remove(
+    @Param('id') id: string,
+    @User() user: AuthenticatedUser,
+  ): Promise<Candidate> {
     // Get organization and user from JWT token
     const organizationId = user.organizationId;
 
@@ -140,7 +191,7 @@ export class CandidatesController {
   async matchToJob(
     @Body() matchData: MatchCandidatesDto,
     @User() user: AuthenticatedUser,
-  ) {
+  ): Promise<CandidateMatchResult[]> {
     // Get organization and user from JWT token
     const organizationId = user.organizationId;
 
@@ -155,7 +206,7 @@ export class CandidatesController {
     @Param('id') candidateId: string,
     @Param('jobId') jobId: string,
     @User() user: AuthenticatedUser,
-  ) {
+  ): Promise<CandidateMatchScoreResponse> {
     // Get organization and user from JWT token
     const organizationId = user.organizationId;
 
