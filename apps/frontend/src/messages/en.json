@@ -53,5 +53,42 @@
   "candidates": {
     "title": "Candidates",
     "listError": "Could not fetch candidates."
+  },
+  "candidate": {
+    "title": "Upload Candidate Resume",
+    "uploadSubtitle": "Upload a PDF resume to instantly create a new candidate. Our AI will extract all relevant details and skills.",
+    "uploadLabel": "Resume PDF",
+    "uploadButton": "Upload",
+    "uploading": "Uploading...",
+    "uploadError": "Please select a resume file.",
+    "uploadSuccess": "Upload Complete!",
+    "dragDrop": "Drop your resume here or click to browse",
+    "notFound": "Candidate not found."
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to your account",
+    "email": "Email Address",
+    "password": "Password",
+    "loading": "Signing in...",
+    "submit": "Sign In",
+    "error": "Invalid email or password.",
+    "noAccount": "Don't have an account?",
+    "signup": "Sign up"
+  },
+  "signup": {
+    "title": "Create Account",
+    "subtitle": "Join our AI recruiting platform",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email Address",
+    "password": "Password",
+    "organizationName": "Organization Name",
+    "role": "Role",
+    "loading": "Creating account...",
+    "submit": "Create Account",
+    "error": "Failed to create account.",
+    "haveAccount": "Already have an account?",
+    "login": "Sign in"
   }
 }

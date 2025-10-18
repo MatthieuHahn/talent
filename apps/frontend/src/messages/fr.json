@@ -47,5 +47,42 @@
   "candidates": {
     "title": "Candidats",
     "listError": "Impossible de récupérer les candidats."
+  },
+  "candidate": {
+    "title": "Télécharger le CV du candidat",
+    "uploadSubtitle": "Téléchargez un CV en PDF pour créer instantanément un nouveau candidat. Notre IA extraira tous les détails et compétences pertinents.",
+    "uploadLabel": "CV PDF",
+    "uploadButton": "Télécharger",
+    "uploading": "Téléchargement...",
+    "uploadError": "Veuillez sélectionner un fichier de CV.",
+    "uploadSuccess": "Téléchargement terminé !",
+    "dragDrop": "Déposez votre CV ici ou cliquez pour parcourir",
+    "notFound": "Candidat introuvable."
+  },
+  "login": {
+    "title": "Bienvenue",
+    "subtitle": "Connectez-vous à votre compte",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "loading": "Connexion en cours...",
+    "submit": "Se connecter",
+    "error": "E-mail ou mot de passe invalide.",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "signup": "S'inscrire"
+  },
+  "signup": {
+    "title": "Créer un compte",
+    "subtitle": "Rejoignez notre plateforme de recrutement IA",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "organizationName": "Nom de l'organisation",
+    "role": "Rôle",
+    "loading": "Création du compte...",
+    "submit": "Créer un compte",
+    "error": "Échec de la création du compte.",
+    "haveAccount": "Vous avez déjà un compte ?",
+    "login": "Se connecter"
   }
 }
