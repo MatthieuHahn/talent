@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import StatusSelect from "@/components/ui/StatusSelect";
 
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
+
 export default function JobDetailPage() {
   const { data: session, status } = useSession();
   const params = useParams();
@@ -49,7 +51,7 @@ export default function JobDetailPage() {
           headers["Authorization"] =
             `Bearer ${(session.user as any).access_token}`;
         }
-        const res = await fetch(`http://localhost:3001/jobs/${jobId}`, {
+        const res = await fetch(`${BACKEND_URL}/jobs/${jobId}`, {
           headers,
         });
         if (!res.ok) throw new Error("Could not fetch job");
@@ -77,7 +79,7 @@ export default function JobDetailPage() {
         }
         // First, try to fetch matches (non-AI)
         const res = await fetch(
-          `http://localhost:3001/matching/job/${jobId}/candidates?useAi=false`,
+          `${BACKEND_URL}/matching/job/${jobId}/candidates?useAi=false`,
           {
             method: "GET",
             headers,
@@ -89,7 +91,7 @@ export default function JobDetailPage() {
         if (Array.isArray(data) && data.length === 0) {
           try {
             await fetch(
-              `http://localhost:3001/matching/job/${jobId}/candidates?useAi=true`,
+              `${BACKEND_URL}/matching/job/${jobId}/candidates?useAi=true`,
               {
                 method: "POST",
                 headers,
@@ -97,7 +99,7 @@ export default function JobDetailPage() {
             );
             // Refetch matches after AI matching
             const aiRes = await fetch(
-              `http://localhost:3001/matching/job/${jobId}/candidates?useAi=false`,
+              `${BACKEND_URL}/matching/job/${jobId}/candidates?useAi=false`,
               {
                 method: "GET",
                 headers,
@@ -132,7 +134,7 @@ export default function JobDetailPage() {
           `Bearer ${(session.user as any).access_token}`;
       }
       const res = await fetch(
-        `http://localhost:3001/jobs/${jobId}/job-description-url`,
+        `${BACKEND_URL}/jobs/${jobId}/job-description-url`,
         {
           headers,
         }
@@ -433,7 +435,7 @@ function CandidateCard({
           `Bearer ${(session.user as any).access_token}`;
       }
       const res = await fetch(
-        `http://localhost:3001/matching/job/${jobId}/candidate/${match.candidate.id}/status`,
+        `${BACKEND_URL}/matching/job/${jobId}/candidate/${match.candidate.id}/status`,
         {
           method: "PATCH",
           headers,

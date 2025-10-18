@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useLocale, useMessages } from "next-intl";
 import Button from "@/components/ui/Button";
 
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
+
 export default function CandidatePage() {
   const t = useMessages();
   const locale = useLocale();
@@ -34,14 +36,11 @@ export default function CandidatePage() {
         headers["Authorization"] =
           `Bearer ${(session.user as any).access_token}`;
       }
-      const res = await fetch(
-        "http://localhost:3001/candidates/upload-resume",
-        {
-          method: "POST",
-          body: formData,
-          headers,
-        }
-      );
+      const res = await fetch(`${BACKEND_URL}/candidates/upload-resume`, {
+        method: "POST",
+        body: formData,
+        headers,
+      });
       if (!res.ok) {
         const data = await res.json();
         setError(data.message || t["candidate.uploadError"]);

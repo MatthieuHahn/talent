@@ -7,6 +7,8 @@ import { useSession } from "next-auth/react";
 import { Plus, Briefcase, Users, TrendingUp, Loader2 } from "lucide-react";
 import JobCard from "../../../components/jobs/JobCard";
 
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
+
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
   const locale = useLocale();
@@ -40,7 +42,7 @@ export default function DashboardPage() {
             `Bearer ${(session.user as any).access_token}`;
         }
         // Fetch jobs
-        const res = await fetch("http://localhost:3001/jobs", { headers });
+        const res = await fetch(`${BACKEND_URL}/jobs`, { headers });
         if (!res.ok) {
           setError("Could not fetch jobs.");
           setLoading(false);
@@ -59,7 +61,7 @@ export default function DashboardPage() {
           (data.jobs || []).map(async (job: any) => {
             try {
               const matchRes = await fetch(
-                `http://localhost:3001/matching/job/${job.id}/candidates?withAi=false`,
+                `${BACKEND_URL}/matching/job/${job.id}/candidates?withAi=false`,
                 {
                   method: "GET",
                   headers,
@@ -99,7 +101,7 @@ export default function DashboardPage() {
           `Bearer ${(session.user as any).access_token}`;
       }
       const matchRes = await fetch(
-        `http://localhost:3001/matching/job/${jobId}/candidates?withAi=true&forceRematch=true`,
+        `${BACKEND_URL}/matching/job/${jobId}/candidates?withAi=true&forceRematch=true`,
         {
           method: "GET",
           headers,

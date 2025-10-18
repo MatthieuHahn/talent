@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { Candidate, CandidateStatus } from "@talent/types";
 
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
+
 // Extended type for API responses that includes computed fields
 type CandidateWithStats = Candidate & {
   matchedJobsCount?: number;
@@ -66,7 +68,7 @@ export default function CandidatesPage() {
           headers["Authorization"] =
             `Bearer ${(session.user as any).access_token}`;
         }
-        const res = await fetch("http://localhost:3001/candidates", {
+        const res = await fetch(`${BACKEND_URL}/candidates`, {
           headers,
         });
         if (!res.ok) {

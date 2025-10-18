@@ -38,14 +38,17 @@ export default function SignupPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:3001/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept-Language": locale,
-        },
-        body: JSON.stringify(form),
-      });
+      const res = await fetch(
+        `${process.env.BACKEND_URL || "http://localhost:3001"}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept-Language": locale,
+          },
+          body: JSON.stringify(form),
+        }
+      );
       if (!res.ok) {
         const data = await res.json();
         setError(data.message || t["signup.error"]);

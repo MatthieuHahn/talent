@@ -26,6 +26,8 @@ import {
   Building,
 } from "lucide-react";
 
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
+
 type JobMatch = {
   id?: string;
   jobId?: string;
@@ -64,7 +66,7 @@ export default function CandidateDetailPage() {
           headers["Authorization"] =
             `Bearer ${(session.user as any).access_token}`;
         }
-        const res = await fetch(`http://localhost:3001/candidates/${id}`, {
+        const res = await fetch(`${BACKEND_URL}/candidates/${id}`, {
           headers,
         });
         if (!res.ok) {
@@ -134,10 +136,9 @@ export default function CandidateDetailPage() {
       if (session && (session.user as any)?.access_token)
         headers["Authorization"] =
           `Bearer ${(session.user as any).access_token}`;
-      const res = await fetch(
-        `http://localhost:3001/candidates/${id}/resume-url`,
-        { headers }
-      );
+      const res = await fetch(`${BACKEND_URL}/candidates/${id}/resume-url`, {
+        headers,
+      });
       if (!res.ok) throw new Error("failed");
       const data = await res.json();
       window.open(data.url, "_blank");

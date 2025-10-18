@@ -1,6 +1,8 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
+
 export const authOptions = {
   providers: [
     CredentialsProvider({
@@ -12,7 +14,7 @@ export const authOptions = {
       async authorize(credentials) {
         if (!credentials) return null;
         // Call NestJS backend login route
-        const res = await fetch("http://localhost:3001/auth/login", {
+        const res = await fetch(`${BACKEND_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

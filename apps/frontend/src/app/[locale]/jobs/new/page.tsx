@@ -15,6 +15,8 @@ import {
   Briefcase,
 } from "lucide-react";
 
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
+
 export default function NewJobPage() {
   const t = useTranslations("jobs.job");
   const locale = useLocale();
@@ -43,14 +45,11 @@ export default function NewJobPage() {
         headers["Authorization"] =
           `Bearer ${(session.user as any).access_token}`;
       }
-      const res = await fetch(
-        "http://localhost:3001/jobs/upload-job-description",
-        {
-          method: "POST",
-          body: formData,
-          headers,
-        }
-      );
+      const res = await fetch(`${BACKEND_URL}/jobs/upload-job-description`, {
+        method: "POST",
+        body: formData,
+        headers,
+      });
       if (!res.ok) {
         const data = await res.json();
         setError(data.message || t("uploadError"));
