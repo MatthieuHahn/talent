@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/s3-request-presigner": "^3.911.0",
-    "@talent/types": "workspace:*",
+    "@talent/types": "file:../../packages/types",
     "autoprefixer": "^10.4.21",
     "lucide-react": "^0.546.0",
     "next": "15.5.5",
