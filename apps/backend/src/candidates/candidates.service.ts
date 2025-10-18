@@ -343,8 +343,37 @@ export class CandidatesService {
 
     const totalPages = Math.ceil(total / limit);
 
+    // Compute matchedJobsCount for each candidate in bulk
+    const candidateIds = candidates.map((c) => c.id);
+    let matchedCounts: Record<string, number> = {};
+    if (candidateIds.length > 0) {
+      const grouped = await this.prisma.matchingResult.groupBy({
+        by: ['candidateId'],
+        where: {
+          candidateId: { in: candidateIds },
+          organizationId: actualOrgId,
+        },
+        _count: {
+          candidateId: true,
+        },
+      });
+
+      grouped.forEach((g) => {
+        matchedCounts[g.candidateId] = g._count.candidateId || 0;
+      });
+    }
+
+    // Attach counts to candidate objects for frontend convenience
+    const candidatesWithCounts = candidates.map((c) => ({
+      ...c,
+      matchedJobsCount: matchedCounts[c.id] || 0,
+      appliedJobsCount: Array.isArray(c.applications)
+        ? c.applications.length
+        : 0,
+    }));
+
     return {
-      candidates,
+      candidates: candidatesWithCounts,
       total,
       page,
       limit,
@@ -377,7 +406,25 @@ export class CandidatesService {
       throw new NotFoundException(`Candidate with ID ${id} not found`);
     }
 
-    return candidate;
+    // Also fetch matching results (matched jobs) for this candidate within the org
+    const matchingResults = await this.prisma.matchingResult.findMany({
+      where: {
+        candidateId: id,
+        organizationId: actualOrgId,
+      },
+      include: {
+        job: true,
+      },
+      orderBy: {
+        score: 'desc',
+      },
+    });
+
+
+    return {
+      ...candidate,
+      matchingResults,
+    };
   }
 
   async update(

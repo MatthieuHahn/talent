@@ -1,22 +1,40 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useLocale, useMessages } from "next-intl";
+
+import React, { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import { useMessages } from "next-intl";
 import { useSession } from "next-auth/react";
 import Button from "@/components/ui/Button";
 
+type JobMatch = {
+  id?: string;
+  jobId?: string;
+  job?: {
+    id?: string;
+    title?: string;
+    company?: string;
+    location?: string;
+    description?: string;
+  };
+  score?: number;
+  embeddingSimilarity?: number;
+  aiAnalysis?: any;
+  skillMatches?: any;
+};
+
 export default function CandidateDetailPage() {
   const t = useMessages();
-  const locale = useLocale();
-  const router = useRouter();
-  const { id } = useParams();
+  const { id, locale } = useParams() as { id?: string; locale?: string };
   const { data: session } = useSession();
+
   const [candidate, setCandidate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [tab, setTab] = useState<"overview" | "jobs" | "activity">("overview");
 
   useEffect(() => {
-    async function fetchCandidate() {
+    let mounted = true;
+    async function load() {
       setLoading(true);
       setError("");
       try {
@@ -29,236 +47,377 @@ export default function CandidateDetailPage() {
           headers,
         });
         if (!res.ok) {
-          setError(t["candidate.notFound"] || "Candidate not found.");
+          if (mounted)
+            setError(t["candidate.notFound"] || "Candidate not found.");
           setLoading(false);
           return;
         }
         const data = await res.json();
-        setCandidate(data);
-        setLoading(false);
+        if (mounted) setCandidate(data);
       } catch (err) {
-        setError(t["candidate.notFound"] || "Candidate not found.");
-        setLoading(false);
+        if (mounted)
+          setError(t["candidate.notFound"] || "Candidate not found.");
+      } finally {
+        if (mounted) setLoading(false);
       }
     }
-    if (id && session) fetchCandidate();
-  }, [id, t, session]);
 
-  if (loading) return <div className="container mt-16">Loading...</div>;
-  if (error) return <div className="container mt-16 text-red-600">{error}</div>;
+    if (id && session) load();
+    return () => {
+      mounted = false;
+    };
+  }, [id, session, t]);
+
+  const jobs: JobMatch[] = useMemo(() => {
+    if (!candidate) return [];
+    if (Array.isArray(candidate.jobs) && candidate.jobs.length > 0)
+      return candidate.jobs;
+    return candidate.matchingResults || [];
+  }, [candidate]);
+
+  const skillsList: string[] = useMemo(() => {
+    const raw = candidate?.skills ?? candidate?.skillTags;
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === "string") {
+      // try JSON parse, otherwise split by comma
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        // not JSON, fallback to comma split
+        return raw.split(/\s*,\s*/).filter(Boolean);
+      }
+      return [];
+    }
+    if (typeof raw === "object") {
+      // If it's an object containing arrays or string values, try to extract
+      // common shapes: { skills: ['a','b'] } or { 0: 'a', 1: 'b' }
+      if (Array.isArray((raw as any).skills)) return (raw as any).skills;
+      const vals = Object.values(raw as any).flatMap((v: any) =>
+        Array.isArray(v) ? v : typeof v === "string" ? [v] : []
+      );
+      return vals.map(String);
+    }
+    return [];
+  }, [candidate]);
+
+  if (loading) return <div className="p-8">Loading candidate...</div>;
+  if (error) return <div className="p-8 text-red-600">{error}</div>;
   if (!candidate) return null;
 
   return (
-    <div className="container mt-16">
-      <h1 className="text-3xl font-bold mb-8 text-center dark:text-gray-100">
-        {candidate.firstName} {candidate.lastName}
-      </h1>
-      <div className="card grid grid-cols-1 md:grid-cols-2 gap-8 dark:bg-zinc-900 dark:text-gray-100">
-        {/* Contact & Summary */}
-        <div className="space-y-4">
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-md p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column - profile */}
+        <aside className="col-span-1 flex flex-col gap-4">
           <div className="flex items-center gap-4">
-            <span className="font-semibold text-lg dark:text-gray-100">
-              {candidate.email}
-            </span>
-            {candidate.phone && (
-              <span className="text-gray-500 dark:text-gray-400">
-                {candidate.phone}
-              </span>
-            )}
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-white text-2xl font-bold">
+              {(candidate.firstName?.[0] || "") +
+                (candidate.lastName?.[0] || "")}
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">
+                {candidate.firstName} {candidate.lastName}
+              </h2>
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                {candidate.title || candidate.currentTitle || ""}
+              </div>
+              <div className="text-sm text-gray-500 mt-1">
+                {candidate.location || candidate.address || ""}
+              </div>
+            </div>
           </div>
-          {candidate.linkedin && (
-            <div>
-              <a
-                href={`https://${candidate.linkedin}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-blue-600 underline"
+
+          <div className="flex flex-wrap gap-2">
+            {candidate.tags?.slice(0, 8).map((tag: string) => (
+              <span
+                key={tag}
+                className="px-2 py-1 text-xs rounded bg-gray-100 dark:bg-zinc-800"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  fill="currentColor"
-                  className="inline"
-                >
-                  <path d="M4 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm0 2a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zm1 3h2v7H5V8zm7-1a3 3 0 0 1 3 3v5h-2v-5a1 1 0 0 0-2 0v5h-2V8h2v1a2 2 0 0 1 1-1zm-7 0h2v7H5V8z" />
-                </svg>
-                LinkedIn
-              </a>
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          <div className="pt-2">
+            <div className="text-xs text-gray-500">Contact</div>
+            <div className="mt-1 text-sm">
+              <div>{candidate.email}</div>
+              {candidate.phone && <div>{candidate.phone}</div>}
+              {candidate.linkedin && (
+                <div className="text-blue-600">
+                  <a href={candidate.linkedin} target="_blank">
+                    LinkedIn
+                  </a>
+                </div>
+              )}
             </div>
-          )}
-          {candidate.github && (
-            <div>
-              <a
-                href={candidate.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-gray-800 underline"
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  fill="currentColor"
-                  className="inline"
+          </div>
+
+          <div>
+            <div className="text-xs text-gray-500">Skills</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {skillsList.slice(0, 12).map((s: string) => (
+                <span
+                  key={s}
+                  className="text-xs px-2 py-1 rounded bg-blue-50 dark:bg-zinc-800"
                 >
-                  <path d="M9 2C5.13 2 2 5.13 2 9c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.22 2.2.82a7.65 7.65 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 9c0-3.87-3.13-7-7-7z" />
-                </svg>
-                GitHub
-              </a>
+                  {s}
+                </span>
+              ))}
             </div>
-          )}
-          {candidate.resumeUrl && (
-            <div>
-              <Button
-                variant="primary"
-                className="inline-flex items-center gap-2 text-green-700 underline"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  try {
-                    const headers: Record<string, string> = {};
-                    if (session && (session.user as any)?.access_token) {
-                      headers["Authorization"] =
-                        `Bearer ${(session.user as any).access_token}`;
+          </div>
+
+          <div>
+            <div className="text-xs text-gray-500">Availability</div>
+            <div className="mt-1 text-sm">
+              {candidate.availability || "Not specified"}
+            </div>
+          </div>
+
+          <div className="mt-auto">
+            <div className="flex gap-2">
+              {candidate.resumeUrl && (
+                <Button
+                  onClick={async () => {
+                    try {
+                      const headers: Record<string, string> = {};
+                      if (session && (session.user as any)?.access_token)
+                        headers["Authorization"] =
+                          `Bearer ${(session.user as any).access_token}`;
+                      const res = await fetch(
+                        `http://localhost:3001/candidates/${id}/resume-url`,
+                        { headers }
+                      );
+                      if (!res.ok) throw new Error("failed");
+                      const data = await res.json();
+                      window.open(data.url, "_blank");
+                    } catch {
+                      alert("Could not download resume");
                     }
-                    const res = await fetch(
-                      `http://localhost:3001/candidates/${id}/resume-url`,
-                      { headers }
-                    );
-                    if (!res.ok) throw new Error("Failed to get resume link");
-                    const data = await res.json();
-                    window.open(data.url, "_blank");
-                  } catch (err) {
-                    alert("Could not download resume");
-                  }
+                  }}
+                >
+                  Download Resume
+                </Button>
+              )}
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(candidate.email || "");
+                  alert("Email copied");
                 }}
               >
-                <svg
-                  width="18"
-                  height="18"
-                  fill="currentColor"
-                  className="inline"
-                >
-                  <path d="M6 2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V8l-6-6zm6 14H6V4h5v5h5v7a1 1 0 0 1-1 1z" />
-                </svg>
-                Download Resume
+                Copy Email
               </Button>
             </div>
-          )}
-          {candidate.summary && (
-            <div className="mt-4">
-              <h2 className="font-semibold text-lg mb-2 dark:text-gray-100">
-                Summary
-              </h2>
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                {candidate.summary}
+          </div>
+        </aside>
+
+        {/* Right column - details and jobs */}
+        <div className="col-span-2 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-4">
+              <button
+                className={`px-3 py-1 rounded ${tab === "overview" ? "bg-indigo-600 text-white" : "bg-gray-100"}`}
+                onClick={() => setTab("overview")}
+              >
+                Overview
+              </button>
+              <button
+                className={`px-3 py-1 rounded ${tab === "jobs" ? "bg-indigo-600 text-white" : "bg-gray-100"}`}
+                onClick={() => setTab("jobs")}
+              >
+                Jobs ({jobs.length})
+              </button>
+              <button
+                className={`px-3 py-1 rounded ${tab === "activity" ? "bg-indigo-600 text-white" : "bg-gray-100"}`}
+                onClick={() => setTab("activity")}
+              >
+                Activity
+              </button>
+            </div>
+            <div className="text-sm text-gray-500">
+              Profile completeness:{" "}
+              <span className="font-medium">
+                {Math.min(
+                  100,
+                  Math.round((Object.keys(candidate || {}).length / 20) * 100)
+                )}
+                %
+              </span>
+            </div>
+          </div>
+
+          {tab === "overview" && (
+            <section className="bg-white dark:bg-zinc-800 rounded-md p-4 shadow-sm">
+              <h3 className="text-lg font-semibold mb-2">
+                Professional summary
+              </h3>
+              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                {candidate.summary || "No summary provided."}
               </p>
-            </div>
-          )}
-          {candidate.status && (
-            <div>
-              <span className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold dark:bg-blue-900 dark:text-blue-200">
-                {candidate.status}
-              </span>
-            </div>
-          )}
-          {candidate.yearsOfExperience && (
-            <div>
-              <span className="inline-block px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-xs font-semibold dark:bg-gray-800 dark:text-gray-200">
-                {candidate.yearsOfExperience} years experience
-              </span>
-            </div>
-          )}
-        </div>
-        {/* Experience, Education, Skills */}
-        <div className="space-y-6">
-          {candidate.experience && candidate.experience.length > 0 && (
-            <div>
-              <h2 className="font-semibold text-lg mb-2 dark:text-gray-100">
-                Experience
-              </h2>
-              <ul className="space-y-4">
-                {candidate.experience.map((exp: any, idx: number) => (
-                  <li key={idx} className="border-b pb-2">
-                    <div className="font-semibold dark:text-gray-100">
-                      {exp.title} @ {exp.company}
-                    </div>
-                    <div className="text-xs text-gray-500 mb-1 dark:text-gray-400">
-                      {exp.startDate} - {exp.endDate}
-                    </div>
-                    <div className="mb-1 dark:text-gray-300">
-                      {exp.description}
-                    </div>
-                    {exp.technologies && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {exp.technologies.map((tech: string) => (
-                          <span
-                            key={tech}
-                            className="bg-blue-100 rounded px-2 py-1 text-xs dark:bg-blue-900 dark:text-blue-200"
-                          >
-                            {tech}
+
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold">Experience</h4>
+                  <ul className="mt-2 space-y-2">
+                    {(candidate.experience || []).map((e: any, i: number) => (
+                      <li key={i} className="text-sm">
+                        <div className="font-medium">
+                          {e.title} @ {e.company}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {e.startDate} — {e.endDate || "Present"}
+                        </div>
+                        {e.description && (
+                          <div className="text-xs mt-1 text-gray-700 dark:text-gray-300">
+                            {e.description}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold">Education & Certifications</h4>
+                  <ul className="mt-2 space-y-2 text-sm">
+                    {(candidate.education || []).map((ed: any, i: number) => (
+                      <li key={i}>
+                        <div className="font-medium">
+                          {ed.institution} — {ed.degree}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {ed.startDate} — {ed.endDate}
+                        </div>
+                      </li>
+                    ))}
+                    {(candidate.certifications || []).map(
+                      (c: any, i: number) => (
+                        <li key={`cert-${i}`} className="text-sm">
+                          {c.name}{" "}
+                          <span className="text-xs text-gray-500">
+                            ({c.issuer})
                           </span>
-                        ))}
-                      </div>
+                        </li>
+                      )
                     )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {candidate.education && candidate.education.length > 0 && (
-            <div>
-              <h2 className="font-semibold text-lg mb-2 dark:text-gray-100">
-                Education
-              </h2>
-              <ul className="space-y-2">
-                {candidate.education.map((edu: any, idx: number) => (
-                  <li key={idx}>
-                    <span className="font-semibold dark:text-gray-100">
-                      {edu.degree}
-                    </span>{" "}
-                    -{" "}
-                    <span className="dark:text-gray-300">
-                      {edu.institution}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {candidate.skills &&
-            candidate.skills.technical &&
-            candidate.skills.technical.length > 0 && (
-              <div>
-                <h2 className="font-semibold text-lg mb-2 dark:text-gray-100">
-                  Skills
-                </h2>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {candidate.skills.technical.map((skill: string) => (
-                    <span
-                      key={skill}
-                      className="bg-green-100 rounded px-2 py-1 text-xs dark:bg-green-900 dark:text-green-200"
-                    >
-                      {skill}
-                    </span>
-                  ))}
+                  </ul>
                 </div>
               </div>
-            )}
-          {candidate.tags && candidate.tags.length > 0 && (
-            <div>
-              <h2 className="font-semibold text-lg mb-2 dark:text-gray-100">
-                Tags
-              </h2>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {candidate.tags.map((tag: string) => (
-                  <span
-                    key={tag}
-                    className="bg-gray-200 rounded px-2 py-1 text-xs dark:bg-gray-700 dark:text-gray-100"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
+            </section>
+          )}
+
+          {tab === "jobs" && (
+            <section className="space-y-4">
+              {jobs.length === 0 ? (
+                <div className="text-gray-500">No matched jobs available</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {jobs.map((m: JobMatch, idx: number) => {
+                    const jid = m.jobId || m.job?.id;
+                    const app = (candidate.applications || []).find(
+                      (a: any) => a.jobId === jid
+                    );
+                    const score = Math.round((m.score || 0) * 100) / 100;
+                    const sim =
+                      Math.round((m.embeddingSimilarity || 0) * 100) / 100;
+                    const skills = (m.skillMatches?.matched || []).slice(0, 6);
+
+                    return (
+                      <article
+                        key={m.id || idx}
+                        className="border rounded-lg p-4 bg-white dark:bg-zinc-800 shadow-sm"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="min-w-0">
+                            <a
+                              href={`/${locale || ""}/jobs/${jid}`}
+                              className="font-semibold text-lg truncate block"
+                            >
+                              {m.job?.title || "Untitled role"}
+                            </a>
+                            <div className="text-sm text-gray-500 mt-1">
+                              {m.job?.company}
+                              {m.job?.location ? ` • ${m.job.location}` : ""}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm">
+                              {score}
+                            </div>
+                            <div className="mt-2">
+                              {app ? (
+                                <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">
+                                  {app.status}
+                                </span>
+                              ) : (
+                                <span className="text-xs px-2 py-1 bg-gray-100 rounded">
+                                  Match
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 text-sm text-gray-700 dark:text-gray-300">
+                          {m.aiAnalysis?.summary ||
+                            m.aiAnalysis?.recommendation ||
+                            "No AI summary"}
+                        </div>
+
+                        {skills.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {skills.map((s: string) => (
+                              <span
+                                key={s}
+                                className="text-xs bg-blue-50 dark:bg-zinc-700 px-2 py-1 rounded"
+                              >
+                                {s}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
+                          <div>
+                            Similarity{" "}
+                            <span className="font-medium text-gray-700">
+                              {sim}
+                            </span>
+                          </div>
+                          <a
+                            href={`/${locale || ""}/jobs/${jid}`}
+                            className="px-3 py-1 bg-indigo-600 text-white rounded text-sm"
+                          >
+                            View job
+                          </a>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
+
+          {tab === "activity" && (
+            <section className="bg-white dark:bg-zinc-800 rounded-md p-4 shadow-sm">
+              <h3 className="font-semibold">Recent activity</h3>
+              <ul className="mt-3 list-disc list-inside text-sm text-gray-700 dark:text-gray-300">
+                {(candidate.activity || [])
+                  .slice(0, 10)
+                  .map((a: any, i: number) => (
+                    <li key={i}>
+                      {a.text}{" "}
+                      <span className="text-xs text-gray-500">{a.date}</span>
+                    </li>
+                  ))}
+                {!(candidate.activity || []).length && (
+                  <li className="text-gray-500">No recent activity</li>
+                )}
+              </ul>
+            </section>
           )}
         </div>
       </div>

@@ -275,7 +275,6 @@ export class JobsService {
 
       // Use OpenAI to parse the job description
       const parsedData = await this.openAiService.parseJobDescription(jobText);
-      console.log('Parsed Job Data:', parsedData);
       // Map parsed data to job creation format
       const jobData = this.mapParsedJobDataToCreateJobDto(
         parsedData,

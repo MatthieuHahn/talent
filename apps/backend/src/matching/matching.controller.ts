@@ -1,12 +1,15 @@
 import {
   Controller,
   Get,
+  Patch,
   Param,
   Query,
+  Body,
   UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { MatchingService } from './matching.service';
 import { JwtAuthGuard } from '../auth/guards/auth.guard';
@@ -16,6 +19,28 @@ import { User } from '../auth/decorators/user.decorator';
 @UseGuards(JwtAuthGuard)
 export class MatchingController {
   constructor(private readonly matchingService: MatchingService) {}
+
+  /**
+   * Update the status of a candidate for a specific job
+   */
+
+  @Patch('job/:jobId/candidate/:candidateId/status')
+  async updateCandidateStatusForJob(
+    @Param('jobId') jobId: string,
+    @Param('candidateId') candidateId: string,
+    @User() user: any,
+    @Body('status') status: string,
+  ) {
+    if (!status) {
+      throw new BadRequestException('Status is required');
+    }
+    return this.matchingService.updateCandidateStatusForJob(
+      jobId,
+      candidateId,
+      status,
+      user.organizationId,
+    );
+  }
 
   /**
    * Find best candidates for a specific job using AI matching

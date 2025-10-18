@@ -13,6 +13,8 @@ type Candidate = {
   status?: string;
   yearsOfExperience?: number;
   tags?: string[];
+  matchedJobsCount?: number;
+  appliedJobsCount?: number;
 };
 
 type CandidateResponse = {
@@ -105,6 +107,16 @@ export default function CandidatesPage() {
             <div className="text-gray-600 dark:text-gray-300 mb-1">
               {candidate.email}
             </div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  Matches: {candidate.matchedJobsCount ?? 0}
+                </span>
+                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                  Applied: {candidate.appliedJobsCount ?? 0}
+                </span>
+              </div>
+            </div>
             {candidate.status && (
               <span className="inline-block px-2 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold dark:bg-blue-900 dark:text-blue-200">
                 {candidate.status}
@@ -116,11 +128,11 @@ export default function CandidatesPage() {
               </span>
             )}
             {candidate.tags && candidate.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
+              <div className="flex flex-wrap gap-2 mt-2">
                 {candidate.tags.slice(0, 6).map((tag: string) => (
                   <span
                     key={tag}
-                    className="bg-gray-200 rounded px-2 py-1 text-xs dark:bg-gray-700 dark:text-gray-100"
+                    className="inline-block px-2 py-1 rounded bg-gray-200 text-gray-800 text-xs font-medium dark:bg-gray-700 dark:text-gray-100"
                   >
                     {tag}
                   </span>

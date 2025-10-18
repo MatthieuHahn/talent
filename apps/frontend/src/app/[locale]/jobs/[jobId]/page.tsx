@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import StatusSelect from "@/components/ui/StatusSelect";
 
 export default function JobDetailPage() {
   const { data: session, status } = useSession();
@@ -202,10 +203,73 @@ export default function JobDetailPage() {
                       {match.candidate.email}
                     </span>
                   )}
+                  {match.candidate.phone && (
+                    <span className="ml-2 text-xs text-gray-500">
+                      | {match.candidate.phone}
+                    </span>
+                  )}
                 </div>
-                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                  Score: {match.score?.toFixed(0)}%
-                </span>
+                <div className="flex items-center gap-3">
+                  <StatusSelect
+                    value={match.application?.status || "APPLIED"}
+                    onChange={async (newStatus) => {
+                      // optimistic UI
+                      const prev = match.application?.status;
+                      try {
+                        // Call backend
+                        const headers: Record<string, string> = {
+                          "Content-Type": "application/json",
+                        };
+                        if (session && (session.user as any)?.access_token) {
+                          headers["Authorization"] =
+                            `Bearer ${(session.user as any).access_token}`;
+                        }
+                        const res = await fetch(
+                          `http://localhost:3001/matching/job/${jobId}/candidate/${match.candidate.id}/status`,
+                          {
+                            method: "PATCH",
+                            headers,
+                            body: JSON.stringify({ status: newStatus }),
+                          }
+                        );
+                        if (!res.ok) throw new Error("Update failed");
+                        // Update local state
+                        setMatchedCandidates((prevArr) =>
+                          prevArr.map((m) =>
+                            m.candidateId === match.candidateId
+                              ? {
+                                  ...m,
+                                  application: {
+                                    ...(m.application || {}),
+                                    status: newStatus,
+                                  },
+                                }
+                              : m
+                          )
+                        );
+                      } catch (err) {
+                        // revert handled in StatusSelect but ensure array is updated back
+                        setMatchedCandidates((prevArr) =>
+                          prevArr.map((m) =>
+                            m.candidateId === match.candidateId
+                              ? {
+                                  ...m,
+                                  application: {
+                                    ...(m.application || {}),
+                                    status: prev,
+                                  },
+                                }
+                              : m
+                          )
+                        );
+                        console.error(err);
+                      }
+                    }}
+                  />
+                  <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    Score: {match.score?.toFixed(0)}%
+                  </span>
+                </div>
               </div>
               {/* Matched Skills as tags */}
               <div className="mt-2 text-xs">

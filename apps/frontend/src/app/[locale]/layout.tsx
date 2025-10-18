@@ -19,7 +19,7 @@ export default async function LocaleLayout({
   } catch (err) {
     messages = require("@/messages/en.json");
   }
-  console.log("Loaded messages for locale:", locale, messages);
+
   return (
     <LocaleLayoutClient messages={messages} locale={locale}>
       {children}

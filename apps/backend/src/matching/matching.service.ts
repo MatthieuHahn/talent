@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import OpenAI from 'openai';
+import { ApplicationStatus } from '@prisma/client';
 
 export interface MatchingResult {
   candidateId: string;
@@ -9,10 +10,14 @@ export interface MatchingResult {
     firstName: string;
     lastName: string;
     email: string;
+    phone: string | null;
     skills: string[];
     experience: number;
     summary?: string;
   };
+  application?: {
+    status: ApplicationStatus | string | null;
+  } | null;
   score: number;
   embeddingSimilarity: number;
   aiAnalysis?: {
@@ -34,16 +39,6 @@ export interface MatchingResult {
   };
 }
 
-export interface MatchingCriteria {
-  requiredSkills?: string[];
-  preferredSkills?: string[];
-  minExperience?: number;
-  maxExperience?: number;
-  jobLevel?: string;
-  location?: string;
-  remote?: boolean;
-}
-
 @Injectable()
 export class MatchingService {
   private openai: OpenAI;
@@ -52,6 +47,66 @@ export class MatchingService {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
+  }
+
+  /**
+   * Update the status of a candidate for a specific job (JobApplication.status)
+   */
+  async updateCandidateStatusForJob(
+    jobId: string,
+    candidateId: string,
+    status: string,
+    organizationId: string,
+  ): Promise<any> {
+    // Ensure job and candidate exist and belong to the organization
+    const [job, candidate] = await Promise.all([
+      this.prisma.job.findUnique({ where: { id: jobId } }),
+      this.prisma.candidate.findUnique({ where: { id: candidateId } }),
+    ]);
+
+    if (!job || job.organizationId !== organizationId) {
+      throw new Error('Job not found or access denied');
+    }
+    if (!candidate || candidate.organizationId !== organizationId) {
+      throw new Error('Candidate not found or access denied');
+    }
+
+    // Find existing job application
+    const jobApplication = await this.prisma.jobApplication.findUnique({
+      where: {
+        candidateId_jobId: {
+          candidateId,
+          jobId,
+        },
+      },
+    });
+
+    if (!jobApplication) {
+      // Create a new JobApplication record if none exists
+      const created = await this.prisma.jobApplication.create({
+        data: {
+          candidateId,
+          jobId,
+          status: status as ApplicationStatus,
+        },
+      });
+      return created;
+    }
+
+    // Update the status on existing application
+    const updated = await this.prisma.jobApplication.update({
+      where: {
+        candidateId_jobId: {
+          candidateId,
+          jobId,
+        },
+      },
+      data: {
+        status: status as ApplicationStatus,
+      },
+    });
+
+    return updated;
   }
 
   /**
@@ -70,7 +125,7 @@ export class MatchingService {
       organizationId,
       limit,
     );
-    
+
     if (!forceRematch && cachedResults && cachedResults.length > 0) {
       console.log(
         `[MatchingService] Using ${cachedResults.length} cached results for job ${jobId}`,
@@ -142,7 +197,28 @@ export class MatchingService {
       },
     );
 
-    return sortedResults;
+    // Fetch any existing JobApplication records for these candidates in bulk
+    const candidateIds = sortedResults.map((r) => r.candidateId);
+    const applications = await this.prisma.jobApplication.findMany({
+      where: {
+        jobId,
+        candidateId: { in: candidateIds },
+      },
+    });
+
+    const appMap: Record<string, any> = {};
+    applications.forEach((a) => {
+      appMap[a.candidateId] = a;
+    });
+
+    const resultsWithApps = sortedResults.map((r) => ({
+      ...r,
+      application: appMap[r.candidateId]
+        ? { status: appMap[r.candidateId].status }
+        : null,
+    }));
+
+    return resultsWithApps;
   }
 
   /**
@@ -178,6 +254,7 @@ export class MatchingService {
         c."firstName",
         c."lastName",
         c.email,
+        c.phone,
         c.skills,
         c."yearsOfExperience" as experience,
         c.summary,
@@ -216,7 +293,9 @@ export class MatchingService {
     const sortedCandidates = candidatesWithSimilarity.sort(
       (a, b) => b.similarity - a.similarity,
     );
-    const topCandidates = sortedCandidates.filter(x => x.similarity > 0.5).slice(0, limit);
+    const topCandidates = sortedCandidates
+      .filter((x) => x.similarity > 0.5)
+      .slice(0, limit);
 
     return topCandidates.map((candidate) => ({
       candidateId: candidate.id,
@@ -225,6 +304,7 @@ export class MatchingService {
         firstName: candidate.firstName,
         lastName: candidate.lastName,
         email: candidate.email,
+        phone: candidate.phone,
         skills: Array.isArray(candidate.skills) ? candidate.skills : [],
         experience: candidate.experience || 0,
         summary: candidate.summary,
@@ -655,6 +735,7 @@ Respond in JSON format:
         firstName: c.firstName,
         lastName: c.lastName,
         email: c.email,
+        phone: c.phone,
         skills: Array.isArray(c.skills) ? c.skills : [],
         experience: c.experience || 0,
         summary: c.summary,
@@ -774,6 +855,7 @@ Respond in JSON format:
             firstName: true,
             lastName: true,
             email: true,
+            phone: true,
             skills: true,
             yearsOfExperience: true,
             summary: true,
@@ -791,13 +873,14 @@ Respond in JSON format:
     }
 
     // Convert cached results to MatchingResult format
-    return cachedResults.map((cached) => ({
+    const mapped = cachedResults.map((cached) => ({
       candidateId: cached.candidateId,
       candidate: {
         id: cached.candidate.id,
         firstName: cached.candidate.firstName,
         lastName: cached.candidate.lastName,
         email: cached.candidate.email,
+        phone: cached.candidate.phone,
         skills: this.extractSkillsFromCandidate(cached.candidate),
         experience: cached.candidate.yearsOfExperience || 0,
         summary: cached.candidate.summary || undefined,
@@ -807,6 +890,26 @@ Respond in JSON format:
       skillMatches: cached.skillMatches as any,
       aiAnalysis: cached.aiAnalysis as any,
     }));
+
+    // Attach application status for each cached result
+    const withApps = await Promise.all(
+      mapped.map(async (result) => {
+        const app = await this.prisma.jobApplication.findUnique({
+          where: {
+            candidateId_jobId: {
+              candidateId: result.candidateId,
+              jobId,
+            },
+          },
+        });
+        return {
+          ...result,
+          application: app ? { status: app.status } : null,
+        } as MatchingResult;
+      }),
+    );
+
+    return withApps;
   }
 
   /**
@@ -835,6 +938,7 @@ Respond in JSON format:
             firstName: true,
             lastName: true,
             email: true,
+            phone: true,
             skills: true,
             yearsOfExperience: true,
             summary: true,
@@ -848,13 +952,14 @@ Respond in JSON format:
     }
 
     // Convert cached result to MatchingResult format
-    return {
+    const base: MatchingResult = {
       candidateId: cachedResult.candidateId,
       candidate: {
         id: cachedResult.candidate.id,
         firstName: cachedResult.candidate.firstName,
         lastName: cachedResult.candidate.lastName,
         email: cachedResult.candidate.email,
+        phone: cachedResult.candidate.phone,
         skills: this.extractSkillsFromCandidate(cachedResult.candidate),
         experience: cachedResult.candidate.yearsOfExperience || 0,
         summary: cachedResult.candidate.summary || undefined,
@@ -863,7 +968,23 @@ Respond in JSON format:
       embeddingSimilarity: cachedResult.embeddingSimilarity,
       skillMatches: cachedResult.skillMatches as any,
       aiAnalysis: cachedResult.aiAnalysis as any,
+      application: null,
     };
+
+    const app = await this.prisma.jobApplication.findUnique({
+      where: {
+        candidateId_jobId: {
+          candidateId: base.candidateId,
+          jobId,
+        },
+      },
+    });
+
+    if (app) {
+      base.application = { status: app.status };
+    }
+
+    return base;
   }
 
   /**
