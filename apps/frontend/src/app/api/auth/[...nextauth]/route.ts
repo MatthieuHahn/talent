@@ -1,5 +1,21 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import type { JWT } from "next-auth/jwt";
+import type { Session } from "next-auth";
+
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string;
+    user?: unknown;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken?: string;
+    user?: unknown;
+  }
+}
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
 
@@ -36,14 +52,14 @@ export const authOptions = {
   useSecureCookies: false,
   cookies: {},
   callbacks: {
-    async jwt({ token, user }: { token: any; user?: any }) {
+    async jwt({ token, user }: { token: JWT; user?: any }) {
       if (user) {
         token.accessToken = user.accessToken || user.token;
         token.user = user;
       }
       return token;
     },
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       session.accessToken = token.accessToken;
       session.user = token.user;
       return session;

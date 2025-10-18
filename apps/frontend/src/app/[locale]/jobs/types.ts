@@ -1,4 +1,6 @@
 // Job types for frontend (matches backend DTO)
+import { JobApplication } from "@talent/types";
+
 export type Job = {
   id: string;
   title: string;
@@ -82,7 +84,7 @@ export type Job = {
     lastName: string;
     email: string;
   };
-  applications: any[];
+  applications: JobApplication[];
   _count: {
     applications: number;
   };

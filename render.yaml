@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: talent-backend
+    env: node
+    plan: free
+    region: oregon
+
+    # Si ton backend est dans un sous-dossier (ex: apps/backend)
+    rootDir: apps/backend
+
+    buildCommand: yarn install && yarn build
+    startCommand: yarn start:prod
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+
+      # Clés pour ton stockage et IA (exemples à adapter)
+      - key: DATABASE_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_S3_BUCKET
+        sync: false
+      - key: AWS_REGION
+        sync: false

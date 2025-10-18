@@ -6,18 +6,17 @@ export default async function LocaleLayout({
   params,
 }: {
   children: ReactNode;
-  params: any;
+  params: Promise<{ locale: string }>;
 }) {
-  const awaitedParams =
-    typeof params.then === "function" ? await params : params;
+  const awaitedParams = await params;
   const { locale } = awaitedParams;
 
-  // Load messages for the current locale using require (server context)
+  // Load messages for the current locale using dynamic import (server context)
   let messages = {};
   try {
-    messages = require(`@/messages/${locale}.json`);
+    messages = (await import(`@/messages/${locale}.json`)).default;
   } catch (err) {
-    messages = require("@/messages/en.json");
+    messages = (await import("@/messages/en.json")).default;
   }
 
   return (

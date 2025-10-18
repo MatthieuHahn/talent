@@ -302,9 +302,9 @@ export default function IndexPage() {
                 ))}
               </div>
               <p className="text-slate-700 dark:text-slate-300 mb-6 italic">
-                "This platform revolutionized our hiring process. We reduced
-                time-to-hire by 60% and improved candidate quality
-                significantly."
+                &ldquo;This platform revolutionized our hiring process. We
+                reduced time-to-hire by 60% and improved candidate quality
+                significantly.&rdquo;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
@@ -332,8 +332,9 @@ export default function IndexPage() {
                 ))}
               </div>
               <p className="text-slate-700 dark:text-slate-300 mb-6 italic">
-                "The AI matching accuracy is incredible. We've found perfect
-                candidates that we would have missed with traditional methods."
+                &ldquo;The AI matching accuracy is incredible. We&apos;ve found
+                perfect candidates that we would have missed with traditional
+                methods.&rdquo;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-semibold">
@@ -361,9 +362,9 @@ export default function IndexPage() {
                 ))}
               </div>
               <p className="text-slate-700 dark:text-slate-300 mb-6 italic">
-                "The analytics and reporting features give us valuable insights
-                into our hiring funnel. Highly recommended for any serious
-                recruiter."
+                &ldquo;The analytics and reporting features give us valuable
+                insights into our hiring funnel. Highly recommended for any
+                serious recruiter.&rdquo;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold">

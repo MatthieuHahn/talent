@@ -527,7 +527,8 @@ export default function CandidateDetailPage() {
                         No matched jobs available
                       </h4>
                       <p className="text-slate-600 dark:text-slate-400">
-                        This candidate hasn't been matched with any jobs yet.
+                        This candidate hasn&apos;t been matched with any jobs
+                        yet.
                       </p>
                     </div>
                   ) : (

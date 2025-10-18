@@ -39,7 +39,7 @@ export default function BillingPage() {
               Billing Coming Soon
             </h2>
             <p className="text-slate-600 dark:text-slate-400 text-lg mb-8 max-w-2xl mx-auto">
-              We're working hard to bring you a comprehensive billing and
+              We&apos;re working hard to bring you a comprehensive billing and
               subscription management system. This feature will be available
               soon with full Stripe integration for secure payments.
             </p>

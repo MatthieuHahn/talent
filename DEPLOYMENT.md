@@ -1,6 +1,8 @@
 # Vercel Deployment Guide
 
-## Frontend Deployment (Next.js)
+## Monorepo Deployment (Frontend + Backend)
+
+Both your Next.js frontend and NestJS backend will be deployed to Vercel using the monorepo configuration.
 
 ### 1. Install Vercel CLI
 
@@ -24,60 +26,39 @@ vercel --prod
 
 Go to your Vercel project dashboard and add these environment variables:
 
-- `BACKEND_URL`: Your production backend API URL
+- `BACKEND_URL`: Your Vercel domain (e.g., `https://your-app.vercel.app`) - same as frontend
 - `NEXTAUTH_URL`: Your Vercel domain (e.g., `https://your-app.vercel.app`)
 - `NEXTAUTH_SECRET`: A secure random string (generate with `openssl rand -base64 32`)
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`: Your Stripe publishable key
+- `FRONTEND_URL`: Your Vercel domain (for CORS in backend)
+- `DATABASE_URL`: Your production database URL
+- `STRIPE_SECRET_KEY`: Your Stripe secret key
+- `OPENAI_API_KEY`: Your OpenAI API key (if using AI features)
+- `AWS_ACCESS_KEY_ID`: Your AWS access key (for S3)
+- `AWS_SECRET_ACCESS_KEY`: Your AWS secret key (for S3)
+- `S3_BUCKET_NAME`: Your S3 bucket name
 
-### 5. Set Build Settings
+### 5. Build Settings
 
-In Vercel dashboard:
+Vercel will automatically use the `vercel.json` configuration for monorepo builds:
 
-- **Build Command**: `cd apps/frontend && yarn build`
-- **Output Directory**: `apps/frontend/.next`
-- **Install Command**: `yarn install`
-
-## Backend Deployment Options
-
-Since Vercel doesn't natively support NestJS applications, deploy your backend to one of these platforms:
-
-### Option 1: Railway (Recommended)
-
-```bash
-# Install Railway CLI
-npm install -g @railway/cli
-
-# Login and deploy
-railway login
-railway init
-railway up
-```
-
-### Option 2: Render
-
-1. Connect your GitHub repo to Render
-2. Create a new Web Service
-3. Set build command: `yarn build`
-4. Set start command: `yarn start:prod`
-
-### Option 3: Vercel Serverless (Advanced)
-
-Convert your NestJS app to Vercel serverless functions using `@vercel/node`.
+- Frontend: Next.js build in `apps/frontend/`
+- Backend: NestJS serverless build in `apps/backend/`
 
 ## Post-Deployment Checklist
 
-- [ ] Update `BACKEND_URL` in Vercel environment variables
-- [ ] Update `NEXTAUTH_URL` with your Vercel domain
+- [ ] Update all environment variables in Vercel dashboard
 - [ ] Test authentication flow
 - [ ] Test Stripe payment integration
 - [ ] Verify file uploads work
 - [ ] Test all API endpoints
 - [ ] Check internationalization (i18n) works
 - [ ] Verify email sending functionality
+- [ ] Test database connections
 
 ## Domain Configuration
 
 1. Add your custom domain in Vercel dashboard
 2. Update DNS records as instructed
-3. Update `NEXTAUTH_URL` environment variable with custom domain
-4. Configure CORS in your backend for the custom domain
+3. Update `NEXTAUTH_URL`, `BACKEND_URL`, and `FRONTEND_URL` environment variables with custom domain
+4. CORS is already configured for the same domain

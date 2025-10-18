@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { Plus, Briefcase, Users, TrendingUp, Loader2 } from "lucide-react";
 import JobCard from "../../../components/jobs/JobCard";
+import { Job } from "@talent/types";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
 
@@ -14,7 +15,7 @@ export default function DashboardPage() {
   const locale = useLocale();
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [jobs, setJobs] = useState([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   // Store match info for each job
@@ -27,7 +28,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === "loading") return;
     if (!session) {
-      router.replace("/" as any);
+      router.replace(`/${locale}`);
     }
   }, [session, status, router]);
 
@@ -37,7 +38,10 @@ export default function DashboardPage() {
       setError("");
       try {
         const headers: Record<string, string> = {};
-        if (session && (session.user as any)?.access_token) {
+        if (
+          session &&
+          (session.user as { access_token?: string })?.access_token
+        ) {
           headers["Authorization"] =
             `Bearer ${(session.user as any).access_token}`;
         }
@@ -58,7 +62,7 @@ export default function DashboardPage() {
           { matchedCandidates: number; highestMatchScore: number }
         > = {};
         await Promise.all(
-          (data.jobs || []).map(async (job: any) => {
+          (data.jobs || []).map(async (job: Job) => {
             try {
               const matchRes = await fetch(
                 `${BACKEND_URL}/matching/job/${job.id}/candidates?withAi=false`,
@@ -303,7 +307,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="grid gap-6">
-              {jobs.map((job: any) => (
+              {jobs.map((job: Job) => (
                 <JobCard
                   key={job.id}
                   job={job}

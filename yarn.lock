@@ -1784,9 +1784,9 @@
     "@emnapi/runtime" "^1.5.0"
     "@tybys/wasm-util" "^0.10.1"
 
-"@nestjs/cli@^11.0.0":
+"@nestjs/cli@^11.0.10":
   version "11.0.10"
-  resolved "https://registry.npmjs.org/@nestjs/cli/-/cli-11.0.10.tgz"
+  resolved "https://registry.yarnpkg.com/@nestjs/cli/-/cli-11.0.10.tgz#c5c3cb4c47d08fd8faead7bf0ddd3f82bec7ccee"
   integrity sha512-4waDT0yGWANg0pKz4E47+nUrqIJv/UqrZ5wLPkCqc7oMGRMWKAaw1NDZ9rKsaqhqvxb2LfI5+uXOWr4yi94DOQ==
   dependencies:
     "@angular-devkit/core" "19.2.15"

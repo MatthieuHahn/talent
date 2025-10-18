@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import {
   ArrowLeft,
@@ -19,6 +20,7 @@ import {
   Star,
 } from "lucide-react";
 import StatusSelect from "@/components/ui/StatusSelect";
+import { Job, Candidate } from "@talent/types";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
 
@@ -27,6 +29,7 @@ export default function JobDetailPage() {
   const params = useParams();
   const jobId = params?.jobId as string;
   const router = useRouter();
+  const locale = useLocale();
 
   const [job, setJob] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,7 +41,7 @@ export default function JobDetailPage() {
   useEffect(() => {
     if (status === "loading") return;
     if (!session) {
-      router.replace("/" as any);
+      router.replace(`/${locale}`);
     }
   }, [session, status, router]);
 
@@ -399,7 +402,7 @@ export default function JobDetailPage() {
                 No candidates matched yet
               </h3>
               <p className="text-slate-600 dark:text-slate-400 mb-6">
-                We're working on finding the perfect candidates for this
+                We&apos;re working on finding the perfect candidates for this
                 position. Check back soon!
               </p>
             </div>

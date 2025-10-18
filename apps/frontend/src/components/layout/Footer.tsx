@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 export default function Footer() {
@@ -15,24 +16,24 @@ export default function Footer() {
           })}
         </p>
         <div className="mt-2 flex justify-center gap-4 text-[var(--color-primary)]">
-          <a
+          <Link
             href="/privacy"
             className="hover:text-[var(--color-accent)] transition"
           >
             {t("privacyPolicy")}
-          </a>
-          <a
+          </Link>
+          <Link
             href="/terms"
             className="hover:text-[var(--color-accent)] transition"
           >
             {t("termsOfService")}
-          </a>
-          <a
+          </Link>
+          <Link
             href="/contact"
             className="hover:text-[var(--color-accent)] transition"
           >
             {t("contact")}
-          </a>
+          </Link>
         </div>
       </div>
     </footer>
