@@ -3,7 +3,16 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useLocale, useMessages } from "next-intl";
-import Button from "@/components/ui/Button";
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  ArrowLeft,
+  CloudUpload,
+  X,
+} from "lucide-react";
 
 export default function CandidatePage() {
   const t = useMessages();
@@ -61,116 +70,234 @@ export default function CandidatePage() {
     }
   }
 
+  const handleFileSelect = (selectedFile: File | null) => {
+    setFile(selectedFile);
+    setError("");
+  };
+
+  const removeFile = () => {
+    setFile(null);
+    setError("");
+  };
+
   return (
-    <div className="max-w-lg mx-auto mt-16 p-0 sm:p-8 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-gray-100 dark:border-zinc-800">
-      <div className="flex flex-col items-center gap-2 pt-8">
-        <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-4 mb-2">
-          <svg width="40" height="40" fill="none" viewBox="0 0 24 24">
-            <rect width="24" height="24" rx="12" fill="#2563eb" />
-            <path
-              d="M8 16V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v8"
-              stroke="#fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M12 12v4"
-              stroke="#fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M12 16h0"
-              stroke="#fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-center dark:text-gray-100">
-          {t["candidate.title"] || "Upload Candidate Resume"}
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 text-center mb-4 max-w-md">
-          {t["candidate.uploadSubtitle"] ||
-            "Upload a PDF resume to instantly create a new candidate. Our AI will extract all relevant details and skills."}
-        </p>
-      </div>
-      <form
-        onSubmit={handleUpload}
-        className="space-y-6 px-4 sm:px-0"
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragActive(true);
-        }}
-        onDragLeave={(e) => {
-          e.preventDefault();
-          setDragActive(false);
-        }}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragActive(false);
-          if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0]);
-        }}
-      >
-        <div>
-          <label htmlFor="resume" className="block font-medium mb-2">
-            {t["candidate.uploadLabel"] || "Resume PDF"}
-          </label>
-          <div
-            className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg px-6 py-8 transition ${dragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-950" : "border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800"}`}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        {/* Header */}
+        <div className="mb-8">
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors duration-200 mb-4"
           >
-            <input
-              id="resume"
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              required
-            />
-            <div className="flex flex-col items-center pointer-events-none">
-              <svg
-                width="32"
-                height="32"
-                fill="none"
-                viewBox="0 0 24 24"
-                className="mb-2 text-blue-600 dark:text-blue-400"
-              >
-                <path
-                  d="M12 16v-8m0 0l-4 4m4-4l4 4"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {file
-                  ? file.name
-                  : t["candidate.dragDrop"] ||
-                    "Drag & drop or click to select a PDF file"}
-              </span>
+            <ArrowLeft className="h-4 w-4" />
+            Back to Candidates
+          </button>
+        </div>
+
+        {/* Main Card */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-8">
+          {/* Header Section */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6 shadow-lg">
+              <Upload className="h-10 w-10" />
+            </div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+              {t["candidate.title"] || "Upload Candidate Resume"}
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed max-w-lg mx-auto">
+              {t["candidate.uploadSubtitle"] ||
+                "Upload a PDF resume to instantly create a new candidate. Our AI will extract all relevant details and skills."}
+            </p>
+          </div>
+
+          {/* Upload Form */}
+          <form onSubmit={handleUpload} className="space-y-6">
+            {/* File Upload Area */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">
+                {t["candidate.uploadLabel"] || "Resume PDF"}
+              </label>
+
+              {!file ? (
+                <div
+                  className={`relative border-2 border-dashed rounded-xl p-8 transition-all duration-200 cursor-pointer ${
+                    dragActive
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-950/50 scale-105"
+                      : "border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30"
+                  }`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragActive(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    setDragActive(false);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragActive(false);
+                    const droppedFile = e.dataTransfer.files?.[0];
+                    if (droppedFile && droppedFile.type === "application/pdf") {
+                      handleFileSelect(droppedFile);
+                    } else {
+                      setError("Please select a valid PDF file.");
+                    }
+                  }}
+                  onClick={() =>
+                    document.getElementById("resume-input")?.click()
+                  }
+                >
+                  <input
+                    id="resume-input"
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) =>
+                      handleFileSelect(e.target.files?.[0] || null)
+                    }
+                    className="hidden"
+                  />
+
+                  <div className="text-center">
+                    <div
+                      className={`mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center transition-colors duration-200 ${
+                        dragActive
+                          ? "bg-blue-100 dark:bg-blue-900"
+                          : "bg-slate-100 dark:bg-slate-700"
+                      }`}
+                    >
+                      <CloudUpload
+                        className={`h-8 w-8 transition-colors duration-200 ${
+                          dragActive
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-slate-400 dark:text-slate-500"
+                        }`}
+                      />
+                    </div>
+
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                      {dragActive
+                        ? "Drop your resume here"
+                        : "Choose a resume file"}
+                    </h3>
+
+                    <p className="text-slate-600 dark:text-slate-400 mb-4">
+                      {t["candidate.dragDrop"] ||
+                        "Drag & drop your PDF file here, or click to browse"}
+                    </p>
+
+                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                      Supports PDF files up to 10MB
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Selected File Display */
+                <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-6 border border-slate-200 dark:border-slate-600">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                        <FileText className="h-6 w-6 text-red-600 dark:text-red-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-slate-900 dark:text-slate-100">
+                          {file.name}
+                        </h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB • PDF
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeFile}
+                      className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                  <p className="text-red-800 dark:text-red-300 text-sm">
+                    {error}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Success Message */}
+            {success && (
+              <div className="bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                  <p className="text-green-800 dark:text-green-300 text-sm">
+                    {t["candidate.uploadSuccess"] ||
+                      "Resume uploaded successfully! Processing candidate information..."}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading || !file || success}
+              className={`w-full inline-flex items-center justify-center gap-3 px-6 py-4 text-lg font-semibold rounded-xl shadow-lg transition-all duration-200 transform ${
+                loading || !file || success
+                  ? "bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                  : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white hover:shadow-xl hover:-translate-y-0.5"
+              }`}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  {t["candidate.uploading"] || "Processing Resume..."}
+                </>
+              ) : success ? (
+                <>
+                  <CheckCircle className="h-5 w-5" />
+                  {t["candidate.uploadSuccess"] || "Upload Complete!"}
+                </>
+              ) : (
+                <>
+                  <Upload className="h-5 w-5" />
+                  {t["candidate.uploadButton"] || "Upload & Create Candidate"}
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer Info */}
+          <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+            <div className="text-center text-sm text-slate-500 dark:text-slate-400">
+              <p className="mb-2">
+                <strong>AI-Powered Processing:</strong> Our system will
+                automatically extract:
+              </p>
+              <div className="flex flex-wrap justify-center gap-2 text-xs">
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-full">
+                  Contact Info
+                </span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-full">
+                  Skills & Experience
+                </span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-full">
+                  Education
+                </span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-full">
+                  Job Matching
+                </span>
+              </div>
             </div>
           </div>
         </div>
-        {error && (
-          <div className="text-red-600 text-sm text-center">{error}</div>
-        )}
-        {success && (
-          <div className="text-green-600 text-sm text-center">
-            {t["candidate.uploadSuccess"] ||
-              "Candidate uploaded! Redirecting..."}
-          </div>
-        )}
-        <Button type="submit" disabled={loading || !file} className="w-full">
-          {loading
-            ? t["candidate.uploading"] || "Uploading..."
-            : t["candidate.uploadButton"] || "Upload"}
-        </Button>
-      </form>
-      <div className="py-4" />
+      </div>
     </div>
   );
 }

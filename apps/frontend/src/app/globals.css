@@ -3,21 +3,37 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --color-card: #ffffff;
+  --color-border: #e5e7eb;
+  --color-primary: #2563eb;
+  --color-accent: #38bdf8;
+  --color-secondary: #6b7280;
+  --color-muted: #f9fafb;
+  --color-muted-foreground: #6b7280;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --color-card: #171717;
+    --color-border: #374151;
+    --color-primary: #38bdf8;
+    --color-accent: #2563eb;
+    --color-secondary: #9ca3af;
+    --color-muted: #1f2937;
+    --color-muted-foreground: #9ca3af;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Inter", Arial, Helvetica, sans-serif;
   font-size: 16px;
   line-height: 1.6;
+  margin: 0;
+  padding: 0;
 }
 
 h1,
@@ -26,25 +42,25 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
+  font-family: "Inter", var(--font-geist-sans, Arial, Helvetica, sans-serif);
   font-weight: 700;
-  color: #222;
+  color: var(--foreground);
 }
 
 p,
 ul,
 ol {
-  color: #444;
+  color: var(--color-secondary);
 }
 
 a {
-  color: #2563eb;
+  color: var(--color-primary);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 a:hover {
-  color: #38bdf8;
+  color: var(--color-accent);
 }
 
 button,
@@ -54,14 +70,19 @@ select {
   font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
 }
 
+/* Modern scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
-  background: #f1f1f1;
+  background: var(--color-muted);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e0e7ef;
+  background: var(--color-secondary);
   border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
 }
 
 /* Container utility for main content */
@@ -75,17 +96,22 @@ select {
 
 /* Card component styling */
 .card {
-  background: #fff;
-  border-radius: 1rem;
-  box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.08);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
   padding: 2rem;
   transition:
     box-shadow 0.2s,
     transform 0.2s;
 }
 .card:hover {
-  box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
 }
 
 /* Button enhancements */
@@ -93,7 +119,7 @@ button {
   border-radius: 0.5rem;
   padding: 0.5rem 1.25rem;
   font-weight: 600;
-  background: #2563eb;
+  background: var(--color-primary);
   color: #fff;
   border: none;
   box-shadow: 0 1px 4px 0 rgba(37, 99, 235, 0.08);
@@ -102,17 +128,17 @@ button {
     box-shadow 0.2s;
 }
 button:hover {
-  background: #1746a2;
+  background: var(--color-accent);
   box-shadow: 0 2px 8px 0 rgba(37, 99, 235, 0.16);
 }
 button:focus {
-  outline: 2px solid #38bdf8;
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
 /* Custom selection color */
 ::selection {
-  background: #2563eb;
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -120,26 +146,29 @@ button:focus {
 input:focus,
 textarea:focus,
 select:focus {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
 /* Card dark mode */
 @media (prefers-color-scheme: dark) {
   .card {
-    background: #171717;
-    color: #ededed;
-    box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.32);
+    background: var(--color-card);
+    color: var(--foreground);
+    box-shadow:
+      0 1px 3px 0 rgba(0, 0, 0, 0.3),
+      0 1px 2px 0 rgba(0, 0, 0, 0.2);
   }
   .card:hover {
-    box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.48);
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.3),
+      0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }
   button {
-    background: #38bdf8;
-    color: #ededed;
+    background: var(--color-primary);
+    color: #fff;
   }
   button:hover {
-    background: #2563eb;
-    color: #fff;
+    background: var(--color-accent);
   }
 }

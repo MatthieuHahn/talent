@@ -14,13 +14,10 @@ export default function Header() {
   const { data: session, status } = useSession();
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--color-card)] border-b border-[var(--color-border)] shadow-sm backdrop-blur-md">
+    <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm backdrop-blur-md">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
         {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-3 text-[var(--color-primary)] font-bold text-2xl hover:opacity-80 transition"
-        >
+        <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400 font-bold text-2xl">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -29,7 +26,7 @@ export default function Header() {
             stroke="currentColor"
             width={28}
             height={28}
-            className="text-[var(--color-accent)]"
+            className="text-blue-500 dark:text-blue-300"
           >
             <circle
               cx="12"
@@ -46,55 +43,55 @@ export default function Header() {
             />
           </svg>
           <span>AI Recruiting CRM</span>
-        </Link>
+        </div>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex gap-6 p-4 text-base items-center">
-          <Link
-            href={`/${locale}`}
-            className="text-[var(--color-secondary)] hover:text-[var(--color-primary)] transition"
-          >
-            {t("index")}
-          </Link>
-          <Link
-            href={`/${locale}/candidates` as any}
-            className="text-[var(--color-secondary)] hover:text-[var(--color-primary)] transition"
-          >
-            {t("candidates")}
-          </Link>
-          <Link
-            href={`/${locale}/dashboard`}
-            className="text-[var(--color-secondary)] hover:text-[var(--color-primary)] transition"
-          >
-            {t("dashboard")}
-          </Link>
-          {status === "authenticated" && session?.user ? (
-            <>
-              <span className="ml-4 text-sm text-gray-600 dark:text-gray-300">
-                {t("signedInAs")}{" "}
-                <span className="font-semibold">{session.user.email}</span>
-              </span>
-              <button
-                className="ml-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-4 py-2 rounded-lg font-semibold shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-                onClick={() => signOut()}
-              >
-                {t("signOut")}
-              </button>
-            </>
-          ) : (
+        {status === "authenticated" && session?.user ? (
+          <nav className="hidden md:flex gap-6 p-4 text-base items-center">
+            <Link
+              href={`/${locale}/candidates` as any}
+              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
+            >
+              {t("candidates")}
+            </Link>
+            <Link
+              href={`/${locale}/dashboard`}
+              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
+            >
+              {t("dashboard")}
+            </Link>
+            <span className="ml-4 text-sm text-gray-600 dark:text-gray-300">
+              {t("signedInAs")}{" "}
+              <span className="font-semibold">{session.user.email}</span>
+            </span>
+            <button
+              className="ml-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-4 py-2 rounded-lg font-semibold shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+              onClick={() => signOut()}
+            >
+              {t("signOut")}
+            </button>
+          </nav>
+        ) : (
+          <div className="hidden md:flex gap-4 items-center">
             <Link
               href={`/${locale}/login`}
-              className="bg-[var(--color-primary)] text-white px-5 py-2 rounded-lg text-center font-semibold shadow hover:bg-[var(--color-accent)] transition"
+              className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition px-4 py-2 rounded-lg font-medium"
             >
               {t("signIn")}
             </Link>
-          )}
-        </nav>
+            <Link
+              href={`/${locale}/signup`}
+              className="bg-blue-600 text-white px-5 py-2 rounded-lg text-center font-semibold shadow hover:bg-blue-500 transition"
+            >
+              {t("signUp") || "Sign Up"}
+            </Link>
+          </div>
+        )}
 
         {/* Mobile Menu Button */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden text-[var(--color-primary)] hover:text-[var(--color-accent)] focus:outline-none p-2 rounded"
+          className="md:hidden text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 focus:outline-none p-2 rounded"
           aria-label="Toggle menu"
         >
           {menuOpen ? (
@@ -107,51 +104,55 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden bg-[var(--color-card)] border-t border-[var(--color-border)] shadow-lg">
-          <nav className="flex flex-col gap-2 px-6 py-4 text-base">
-            <Link
-              href={`/${locale}`}
-              className="py-2 text-[var(--color-secondary)] hover:text-[var(--color-primary)] transition"
-            >
-              {t("index")}
-            </Link>
-            <Link
-              href={`/${locale}/candidates` as any}
-              className="py-2 text-[var(--color-secondary)] hover:text-[var(--color-primary)] transition"
-            >
-              {t("candidates")}
-            </Link>
-            <Link
-              href={`/${locale}/dashboard`}
-              className="py-2 text-[var(--color-secondary)] hover:text-[var(--color-primary)] transition"
-            >
-              {t("dashboard")}
-            </Link>
-            {status === "authenticated" && session?.user ? (
-              <>
-                <span className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                  {t("signedInAs")}{" "}
-                  <span className="font-semibold">{session.user.email}</span>
-                </span>
-                <button
-                  className="mt-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-4 py-2 rounded-lg font-semibold shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    signOut();
-                  }}
-                >
-                  {t("signOut")}
-                </button>
-              </>
-            ) : (
+        <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg">
+          {status === "authenticated" && session?.user ? (
+            <nav className="flex flex-col gap-2 px-6 py-4 text-base">
+              <Link
+                href={`/${locale}/candidates` as any}
+                className="py-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t("candidates")}
+              </Link>
+              <Link
+                href={`/${locale}/dashboard`}
+                className="py-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t("dashboard")}
+              </Link>
+              <span className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                {t("signedInAs")}{" "}
+                <span className="font-semibold">{session.user.email}</span>
+              </span>
+              <button
+                className="mt-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-4 py-2 rounded-lg font-semibold shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                onClick={() => {
+                  setMenuOpen(false);
+                  signOut();
+                }}
+              >
+                {t("signOut")}
+              </button>
+            </nav>
+          ) : (
+            <div className="flex flex-col gap-3 px-6 py-4">
               <Link
                 href={`/${locale}/login`}
-                className="mt-2 bg-[var(--color-primary)] text-white px-5 py-2 rounded-lg text-center font-semibold shadow hover:bg-[var(--color-accent)] transition"
+                className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition py-2 font-medium"
+                onClick={() => setMenuOpen(false)}
               >
                 {t("signIn")}
               </Link>
-            )}
-          </nav>
+              <Link
+                href={`/${locale}/signup`}
+                className="bg-blue-600 text-white px-5 py-3 rounded-lg text-center font-semibold shadow hover:bg-blue-500 transition"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t("signUp") || "Sign Up"}
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>
