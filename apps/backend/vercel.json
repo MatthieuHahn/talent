@@ -1,0 +1,9 @@
+{
+  "buildCommand": "yarn build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/main.ts": {
+      "runtime": "@vercel/node@1.0.0"
+    }
+  }
+}
